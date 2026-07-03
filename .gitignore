@@ -1,0 +1,7 @@
+*.iml
+.env
+.venv
+*.xml
+*.log
+*.pyc
+.idea
