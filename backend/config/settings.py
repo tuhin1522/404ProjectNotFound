@@ -28,6 +28,14 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
+# Production security settings (can be overridden via environment variables)
+SECURE_BROWSER_XSS_FILTER = config('SECURE_BROWSER_XSS_FILTER', default=True, cast=bool)
+SECURE_CONTENT_TYPE_NOSNIFF = config('SECURE_CONTENT_TYPE_NOSNIFF', default=True, cast=bool)
+X_FRAME_OPTIONS = config('X_FRAME_OPTIONS', default='DENY')
+
+# In production behind a load balancer, set SECURE_SSL_REDIRECT=True
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
+
 # ---------------------------------------------------------------------------
 # Application definition
 # ---------------------------------------------------------------------------
@@ -137,6 +145,13 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 # ---------------------------------------------------------------------------
+# Media files  (user-uploaded images)
+# ---------------------------------------------------------------------------
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# ---------------------------------------------------------------------------
 # Default primary key type
 # ---------------------------------------------------------------------------
 
@@ -153,6 +168,20 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    # Throttling to prevent brute-force attacks and abuse
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '20/minute',
+        'user': '100/minute',
+    },
+    # Consistent error envelope for all API errors
+    'EXCEPTION_HANDLER': 'apps.common.exceptions.custom_exception_handler',
+    # Default pagination for list views that opt in
+    'DEFAULT_PAGINATION_CLASS': 'apps.common.pagination.StandardPagination',
+    'PAGE_SIZE': 20,
 }
 
 # ---------------------------------------------------------------------------
@@ -165,3 +194,36 @@ CORS_ALLOWED_ORIGINS = config(
 ).split(',')
 
 AUTH_USER_MODEL = 'users.User'
+
+# ---------------------------------------------------------------------------
+# Logging Configuration
+# ---------------------------------------------------------------------------
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': config('DJANGO_LOG_LEVEL', default='INFO'),
+            'propagate': False,
+        },
+    },
+}

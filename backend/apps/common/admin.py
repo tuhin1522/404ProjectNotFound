@@ -1,3 +1,3 @@
-from django.contrib import admin
-
-# Register your models here.
+"""
+common/admin.py  — nothing to register here (abstract models).
+"""
