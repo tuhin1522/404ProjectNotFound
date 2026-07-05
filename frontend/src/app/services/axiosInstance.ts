@@ -32,11 +32,16 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (typeof window !== "undefined") {
       const status = error?.response?.status;
-      const isAuthError = status === 401 || status === 403;
-      const token = localStorage.getItem("token");
 
-      if (isAuthError && !token) {
-        window.location.href = "/login";
+      if (status === 401 || status === 403) {
+        // Clear tokens immediately to prevent re-entrant checkAuth calls
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        // Only redirect if we're not already on an auth page
+        const path = window.location.pathname;
+        if (!path.startsWith("/login") && !path.startsWith("/signup")) {
+          window.location.href = "/login";
+        }
       }
     }
 

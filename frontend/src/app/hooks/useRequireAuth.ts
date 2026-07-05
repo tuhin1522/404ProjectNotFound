@@ -1,31 +1,46 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/app/store/useAuthStore";
 
 /**
- * useRequireAuth — redirect to /login if the user is not authenticated.
- * Use this hook at the top of any protected page component.
+ * useRequireAuth — redirects unauthenticated users to /login.
  *
- * Returns the current authenticated user once resolved.
+ * Strategy:
+ * - If no token exists → redirect immediately, do NOT call checkAuth.
+ * - If a token exists but auth hasn't been checked yet → call checkAuth ONCE.
+ * - After check: if still not authenticated → redirect.
+ * - Never creates a re-render loop.
  */
 export function useRequireAuth() {
-  const { user, isAuthenticated, isLoading, checkAuth } = useAuthStore();
+  const { user, isAuthenticated, isLoading, authChecked, checkAuth } = useAuthStore();
   const router = useRouter();
+  const initiated = useRef(false);
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
+    // No token at all → go to login immediately
     if (!token) {
       router.replace("/login");
       return;
     }
 
-    if (!isAuthenticated) {
+    // Token exists but we haven't verified it yet → trigger ONE check
+    if (!authChecked && !isLoading && !initiated.current) {
+      initiated.current = true;
       checkAuth();
     }
-  }, [isAuthenticated, checkAuth, router]);
+  }, [authChecked, isLoading, checkAuth, router]);
 
-  return { user, isAuthenticated, isLoading };
+  // After auth check completes: if still not authenticated, redirect
+  useEffect(() => {
+    if (authChecked && !isAuthenticated && !isLoading) {
+      router.replace("/login");
+    }
+  }, [authChecked, isAuthenticated, isLoading, router]);
+
+  return { user, isAuthenticated, isLoading: isLoading || !authChecked };
 }

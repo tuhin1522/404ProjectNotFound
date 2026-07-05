@@ -1,21 +1,26 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAuthStore } from "@/app/store/useAuthStore";
 
 /**
- * AuthInitializer — a client component that runs once on mount
- * and hydrates the Zustand store if a JWT token exists in localStorage.
- * Placed inside RootLayout so all pages benefit from auth state.
+ * AuthInitializer — runs checkAuth exactly ONCE on app load
+ * if a token exists in localStorage and auth hasn't been checked yet.
+ * Does NOT run in a reactive loop. Uses a ref guard to prevent StrictMode double-invoke.
  */
 export default function AuthInitializer() {
-  const { isAuthenticated, checkAuth } = useAuthStore();
+  const { isAuthenticated, authChecked, isLoading, checkAuth } = useAuthStore();
+  const ran = useRef(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token && !isAuthenticated) {
+    if (ran.current) return;
+    ran.current = true;
+
+    // Only call checkAuth if we haven't checked yet and we're not already loading
+    if (!authChecked && !isLoading) {
       checkAuth();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return null;
