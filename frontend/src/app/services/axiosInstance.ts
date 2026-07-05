@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
-const baseURL = apiUrl.endsWith("/api/v1") ? apiUrl : `${apiUrl}/api/v1`;
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const baseURL = apiUrl.endsWith("/api") ? apiUrl : `${apiUrl}/api`;
 
 const axiosInstance = axios.create({
   baseURL,
