@@ -79,7 +79,7 @@ function drawPolygon(
   }
 
   if (isClosed) {
-    ctx.fillStyle = color + (isHighlighted ? "55" : "33"); 
+    ctx.fillStyle = color + (isHighlighted ? "55" : "33");
     ctx.fill();
   }
 
@@ -159,10 +159,10 @@ function drawInProgressBox(
 ) {
   ctx.save();
   const [sx, sy] = toCanvas(startPoint, w, h);
-  
+
   ctx.fillStyle = color + "33";
   ctx.fillRect(sx, sy, endMouse.x - sx, endMouse.y - sy);
-  
+
   ctx.strokeStyle = color;
   ctx.lineWidth = 1.8;
   ctx.strokeRect(sx, sy, endMouse.x - sx, endMouse.y - sy);
@@ -175,16 +175,16 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
-  
+
   const mouseScreenRef = useRef<{ x: number; y: number } | null>(null);
   const mouseImgRef = useRef<{ x: number; y: number } | null>(null);
-  
+
   const animFrameRef = useRef<number>(0);
 
   // Panning & Box Drawing state
   const isPanningRef = useRef(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
-  
+
   const isBoxDrawingRef = useRef(false);
   const boxStartRef = useRef<Point | null>(null);
 
@@ -250,7 +250,7 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
     if (!canvas || !ctx) return;
 
     const { width: w, height: h } = canvas;
-    
+
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
@@ -262,11 +262,11 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
       ctx.save();
       const polygons = selectedImage?.polygons ?? [];
       const cropPolygons = polygons.filter(p => p.label === "__crop__");
-      
+
       if (cropPolygons.length > 0) {
         applyClipPolygon(ctx, cropPolygons[0].points, w, h);
       }
-      
+
       ctx.drawImage(imgRef.current, 0, 0, w, h);
       ctx.restore();
 
@@ -286,11 +286,11 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
       // Draw in-progress polygon
       if (toolMode !== "box" && currentPolygonPoints.length > 0) {
         drawInProgress(
-          ctx, 
-          currentPolygonPoints, 
-          mouseImgRef.current, 
-          w, h, 
-          currentColor, 
+          ctx,
+          currentPolygonPoints,
+          mouseImgRef.current,
+          w, h,
+          currentColor,
           toolMode === "crop"
         );
       }
@@ -335,17 +335,17 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
   }, [undoLastPoint, redoLastPoint]);
 
   // ─── Interaction Helpers ────────────────────────────────────────────────────
-  
+
   const screenToImage = (sx: number, sy: number, canvasW: number, canvasH: number) => {
     let ix = sx - (canvasW / 2 + pan.x);
     let iy = sy - (canvasH / 2 + pan.y);
-    
+
     ix = ix / zoom;
     iy = iy / zoom;
-    
+
     ix = ix + canvasW / 2;
     iy = iy + canvasH / 2;
-    
+
     return { x: ix, y: iy };
   };
 
@@ -354,7 +354,7 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
     const rect = canvas.getBoundingClientRect();
     const sx = e.clientX - rect.left;
     const sy = e.clientY - rect.top;
-    
+
     const imgPos = screenToImage(sx, sy, canvas.width, canvas.height);
     const rel = toRelative(imgPos.x, imgPos.y, canvas.width, canvas.height);
     return { rel, imgPos, sx, sy, w: canvas.width, h: canvas.height };
@@ -430,7 +430,7 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
   const handleClick = async (e: React.MouseEvent<HTMLCanvasElement>) => {
     // Ignore clicks if panning or box mode
     if (e.button === 1 || e.shiftKey || toolMode === "box") return;
-    
+
     if (!selectedImageId) return;
     const canvas = canvasRef.current!;
     const { rel, imgPos, w, h } = getRelativePoint(e);
@@ -458,7 +458,7 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
   const getCursor = (): string => {
     if (!selectedImageId) return "default";
     if (isPanningRef.current) return "grabbing";
-    
+
     if (toolMode !== "box" && currentPolygonPoints.length >= 3 && mouseImgRef.current && canvasRef.current) {
       const [fx, fy] = toCanvas(currentPolygonPoints[0], canvasRef.current.width, canvasRef.current.height);
       if (dist(mouseImgRef.current.x, mouseImgRef.current.y, fx, fy) < CLOSE_THRESHOLD / zoom) {
@@ -509,7 +509,7 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
             : "Click first point or double-click to complete"}
         </div>
       )}
-      
+
       {toolMode === "box" && (
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-sm border border-border text-xs px-3 py-1.5 rounded-full text-muted-foreground pointer-events-none shadow-lg">
           Click and drag to draw a box

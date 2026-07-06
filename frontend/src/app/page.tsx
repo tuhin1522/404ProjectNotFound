@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Kanban, ImageIcon, ArrowRight, Zap, Lock, Database } from "lucide-react";
+import { useAuthStore } from "./store/useAuthStore";
 
 const features = [
   {
@@ -64,6 +65,8 @@ const pillars = [
 ];
 
 export default function Home() {
+  const { isAuthenticated } = useAuthStore();
+
   return (
     <div className="flex flex-col">
       {/* ── HERO ──────────────────────────────────────────────── */}
@@ -76,9 +79,7 @@ export default function Home() {
         </div>
 
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-          <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-4 py-1 text-sm font-medium text-primary mb-6">
-            🔥 Task Management + Image Annotation — in one app
-          </span>
+          
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground leading-tight">
             404 Project{" "}
@@ -92,21 +93,23 @@ export default function Home() {
             with precision polygon tools — all backed by a production-grade Django API.
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25"
-            >
-              Get Started Free
-              <ArrowRight size={18} />
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-secondary text-secondary-foreground font-semibold hover:bg-accent transition-colors"
-            >
-              Sign In
-            </Link>
-          </div>
+          {!isAuthenticated && (
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href="/signup"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25"
+              >
+                Get Started Free
+                <ArrowRight size={18} />
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-secondary text-secondary-foreground font-semibold hover:bg-accent transition-colors"
+              >
+                Sign In
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -187,26 +190,28 @@ export default function Home() {
       </section>
 
       {/* ── CTA BANNER ────────────────────────────────────────── */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-special/10" />
-        </div>
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Ready to build something great?
-          </h2>
-          <p className="text-muted-foreground text-lg mb-8">
-            Sign up and start managing your tasks or annotating your images right now.
-          </p>
-          <Link
-            href="/signup"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:bg-primary/90 transition-colors shadow-xl shadow-primary/30"
-          >
-            Create your account
-            <ArrowRight size={20} />
-          </Link>
-        </div>
-      </section>
+      {!isAuthenticated && (
+        <section className="py-20 relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 -z-10">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-special/10" />
+          </div>
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Ready to build something great?
+            </h2>
+            <p className="text-muted-foreground text-lg mb-8">
+              Sign up and start managing your tasks or annotating your images right now.
+            </p>
+            <Link
+              href="/signup"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg hover:bg-primary/90 transition-colors shadow-xl shadow-primary/30"
+            >
+              Create your account
+              <ArrowRight size={20} />
+            </Link>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

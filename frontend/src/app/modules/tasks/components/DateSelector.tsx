@@ -5,14 +5,23 @@ import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
+function getLocalDateStr(date = new Date()): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function addDays(dateStr: string, n: number): string {
-  const d = new Date(dateStr + "T00:00:00");
+  const [y, m, day] = dateStr.split("-").map(Number);
+  const d = new Date(y, m - 1, day);
   d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
+  return getLocalDateStr(d);
 }
 
 function formatDisplay(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
+  const [y, m, day] = dateStr.split("-").map(Number);
+  const d = new Date(y, m - 1, day);
   return d.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -22,14 +31,14 @@ function formatDisplay(dateStr: string): string {
 }
 
 function isToday(dateStr: string): boolean {
-  return dateStr === new Date().toISOString().slice(0, 10);
+  return dateStr === getLocalDateStr();
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function DateSelector() {
   const { selectedDate, setSelectedDate } = useTaskStore();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalDateStr();
 
   const goBack = () => setSelectedDate(addDays(selectedDate, -1));
   const goForward = () => setSelectedDate(addDays(selectedDate, 1));
