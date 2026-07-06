@@ -11,11 +11,12 @@ import { ScanLine, AlertTriangle } from "lucide-react";
 
 export default function AnnotatePage() {
   const { isLoading: authLoading, isAuthenticated } = useRequireAuth();
-  const { loadImages, isImagesLoading, imagesError } = useAnnotationStore();
+  const { loadImages, isImagesLoading, imagesError, loadLabels } = useAnnotationStore();
 
   useEffect(() => {
     if (isAuthenticated) {
       loadImages();
+      loadLabels();
     }
   }, [isAuthenticated]);
 

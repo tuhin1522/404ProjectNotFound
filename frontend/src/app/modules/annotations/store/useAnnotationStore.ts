@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { AnnotationImage, Polygon, Point } from "@/app/types/annotations";
+import { AnnotationImage, Polygon, Point, AnnotationLabel } from "@/app/types/annotations";
 import {
   fetchImages,
   uploadImage as apiUploadImage,
@@ -8,6 +8,10 @@ import {
   updatePolygon as apiUpdatePolygon,
   deletePolygon as apiDeletePolygon,
   clearPolygons as apiClearPolygons,
+  fetchLabels as apiFetchLabels,
+  createLabel as apiCreateLabel,
+  updateLabel as apiUpdateLabel,
+  deleteLabel as apiDeleteLabel,
 } from "../services/annotationService";
 
 interface AnnotationStore {
@@ -26,6 +30,11 @@ interface AnnotationStore {
   toolMode: "draw" | "crop" | "box";
   zoom: number;
   pan: { x: number; y: number };
+
+  // ─── Labels State ───────────────────────────────────────────────────────────
+  labels: AnnotationLabel[];
+  activeLabelId: number | null;
+  isLabelsLoading: boolean;
 
   // ─── Actions: Images ────────────────────────────────────────────────────────
   loadImages: () => Promise<void>;
@@ -49,9 +58,16 @@ interface AnnotationStore {
 
   // ─── Actions: Polygons ──────────────────────────────────────────────────────
   saveCurrentPolygon: (labelOverride?: string) => Promise<void>;
-  updatePolygon: (id: number, payload: { label?: string; color?: string }) => Promise<void>;
+  updatePolygon: (id: number, payload: { label?: string; color?: string; label_position?: {x: number, y: number} | null }) => Promise<void>;
   deletePolygon: (id: number) => Promise<void>;
   clearAllPolygons: () => Promise<void>;
+
+  // ─── Actions: Labels ────────────────────────────────────────────────────────
+  loadLabels: () => Promise<void>;
+  createLabel: (name: string, color: string) => Promise<void>;
+  updateLabel: (id: number, payload: { name?: string; color?: string }) => Promise<void>;
+  deleteLabel: (id: number) => Promise<void>;
+  setActiveLabel: (id: number | null) => void;
 }
 
 export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
@@ -68,6 +84,10 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
   toolMode: "draw",
   zoom: 1,
   pan: { x: 0, y: 0 },
+
+  labels: [],
+  activeLabelId: null,
+  isLabelsLoading: false,
 
   loadImages: async () => {
     set({ isImagesLoading: true, imagesError: null });
@@ -205,17 +225,27 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
       currentColor,
       currentLabel,
       selectedImageId,
+      labels,
+      activeLabelId,
     } = get();
 
     if (!selectedImageId || currentPolygonPoints.length < 3) return;
 
-    // Use the override (live input value) if provided, otherwise fall back to store
-    const finalLabel = (labelOverride !== undefined ? labelOverride : currentLabel).trim();
+    let finalLabel = (labelOverride !== undefined ? labelOverride : currentLabel).trim();
+    let finalColor = currentColor;
+
+    if (activeLabelId) {
+      const activeLabel = labels.find(l => l.id === activeLabelId);
+      if (activeLabel) {
+        finalLabel = activeLabel.name;
+        finalColor = activeLabel.color;
+      }
+    }
 
     const payload = {
       image: selectedImageId,
       points: currentPolygonPoints,
-      color: currentColor,
+      color: finalColor,
       label: finalLabel,
     };
 
@@ -225,8 +255,9 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
       id: tempId,
       image: selectedImageId,
       points: currentPolygonPoints,
-      color: currentColor,
+      color: finalColor,
       label: finalLabel,
+      label_position: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -266,7 +297,7 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
     }
   },
 
-  updatePolygon: async (id: number, payload: { label?: string; color?: string }) => {
+  updatePolygon: async (id: number, payload: { label?: string; color?: string; label_position?: {x: number, y: number} | null }) => {
     const { selectedImageId } = get();
     if (!selectedImageId) return;
 
@@ -336,4 +367,70 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
       get().loadImages();
     }
   },
+
+  // ─── Labels Implementation ─────────────────────────────────────────────────────
+
+  loadLabels: async () => {
+    set({ isLabelsLoading: true });
+    try {
+      const labels = await apiFetchLabels();
+      set({ labels, isLabelsLoading: false });
+    } catch {
+      set({ isLabelsLoading: false });
+    }
+  },
+
+  createLabel: async (name: string, color: string) => {
+    try {
+      const newLabel = await apiCreateLabel({ name, color });
+      set((state) => ({ labels: [newLabel, ...state.labels], activeLabelId: newLabel.id }));
+    } catch (err) {
+      console.error("Failed to create label", err);
+    }
+  },
+
+  updateLabel: async (id: number, payload: { name?: string; color?: string }) => {
+    let oldName = "";
+    set((state) => {
+      const labelToUpdate = state.labels.find(l => l.id === id);
+      oldName = labelToUpdate?.name || "";
+      const newLabels = state.labels.map(l => l.id === id ? { ...l, ...payload } : l);
+      
+      const newImages = state.images.map((img) => ({
+        ...img,
+        polygons: img.polygons.map((p) => {
+          if (oldName && p.label === oldName) {
+            return {
+              ...p,
+              label: payload.name !== undefined ? payload.name : p.label,
+              color: payload.color !== undefined ? payload.color : p.color,
+            };
+          }
+          return p;
+        })
+      }));
+
+      return { labels: newLabels, images: newImages };
+    });
+    try {
+      await apiUpdateLabel(id, payload);
+    } catch (err) {
+      console.error("Failed to update label", err);
+      get().loadLabels();
+    }
+  },
+
+  deleteLabel: async (id: number) => {
+    set((state) => ({
+      labels: state.labels.filter(l => l.id !== id),
+      activeLabelId: state.activeLabelId === id ? null : state.activeLabelId
+    }));
+    try {
+      await apiDeleteLabel(id);
+    } catch {
+      get().loadLabels();
+    }
+  },
+
+  setActiveLabel: (id: number | null) => set({ activeLabelId: id }),
 }));

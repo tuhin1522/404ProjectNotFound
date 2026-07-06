@@ -7,7 +7,7 @@ Three serializers:
   - AnnotationImageUploadSerializer — write-only; accepts the image file
 """
 from rest_framework import serializers
-from .models import AnnotationImage, Polygon
+from .models import AnnotationImage, Polygon, AnnotationLabel
 
 
 # ---------------------------------------------------------------------------
@@ -17,7 +17,7 @@ from .models import AnnotationImage, Polygon
 class PolygonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Polygon
-        fields = ['id', 'image', 'points', 'label', 'color', 'created_at', 'updated_at']
+        fields = ['id', 'image', 'points', 'label', 'color', 'label_position', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def validate_points(self, value):
@@ -53,6 +53,21 @@ class PolygonSerializer(serializers.ModelSerializer):
                 'You can only annotate your own images.'
             )
         return image
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+# ---------------------------------------------------------------------------
+# AnnotationLabel
+# ---------------------------------------------------------------------------
+
+class AnnotationLabelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnnotationLabel
+        fields = ['id', 'name', 'color', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user

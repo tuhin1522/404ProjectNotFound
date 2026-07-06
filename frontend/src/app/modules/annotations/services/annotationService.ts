@@ -6,6 +6,9 @@ import {
   UpdatePolygonPayload,
   ImageReorderItem,
   PaginatedResponse,
+  AnnotationLabel,
+  CreateLabelPayload,
+  UpdateLabelPayload,
 } from "@/app/types/annotations";
 
 // ─── Images ───────────────────────────────────────────────────────────────────
@@ -89,4 +92,27 @@ export async function clearPolygons(imageId: number): Promise<{ deleted: number 
     }
   );
   return res.data;
+}
+
+// ─── Labels ───────────────────────────────────────────────────────────────────
+
+export async function fetchLabels(): Promise<AnnotationLabel[]> {
+  const res = await axiosInstance.get<PaginatedResponse<AnnotationLabel>>(
+    "/annotations/labels/"
+  );
+  return res.data.results || [];
+}
+
+export async function createLabel(payload: CreateLabelPayload): Promise<AnnotationLabel> {
+  const res = await axiosInstance.post<AnnotationLabel>("/annotations/labels/", payload);
+  return res.data;
+}
+
+export async function updateLabel(id: number, payload: UpdateLabelPayload): Promise<AnnotationLabel> {
+  const res = await axiosInstance.patch<AnnotationLabel>(`/annotations/labels/${id}/`, payload);
+  return res.data;
+}
+
+export async function deleteLabel(id: number): Promise<void> {
+  await axiosInstance.delete(`/annotations/labels/${id}/`);
 }

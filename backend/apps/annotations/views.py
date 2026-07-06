@@ -30,12 +30,13 @@ from rest_framework.response import Response
 from apps.common.permissions import IsOwner
 from apps.common.pagination import StandardPagination
 
-from .models import AnnotationImage, Polygon
+from .models import AnnotationImage, Polygon, AnnotationLabel
 from .serializers import (
     AnnotationImageSerializer,
     AnnotationImageUploadSerializer,
     ImageReorderSerializer,
     PolygonSerializer,
+    AnnotationLabelSerializer,
 )
 
 
@@ -171,3 +172,31 @@ class PolygonViewSet(viewsets.ModelViewSet):
         ).delete()
 
         return Response({'deleted': deleted_count})
+
+
+# ---------------------------------------------------------------------------
+# AnnotationLabel ViewSet
+# ---------------------------------------------------------------------------
+
+class AnnotationLabelViewSet(viewsets.ModelViewSet):
+    """
+    CRUD for a user's annotation labels.
+
+    get_queryset already scopes to the requesting user, so IsOwner is only
+    needed for object-level operations (update / delete).  Using IsAuthenticated
+    alone at the list/create level avoids a spurious 500 on POST.
+    """
+    serializer_class = AnnotationLabelSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser]
+
+    def get_queryset(self):
+        return AnnotationLabel.objects.filter(user=self.request.user)
+
+    def get_object(self):
+        obj = super().get_object()
+        # Manually enforce object-level ownership for mutating actions
+        if obj.user != self.request.user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied()
+        return obj

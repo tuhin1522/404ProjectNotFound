@@ -11,8 +11,16 @@ export interface Polygon {
   points: Point[];
   label: string;
   color: string;
+  label_position?: { x: number; y: number } | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface AnnotationLabel {
+  id: number;
+  name: string;
+  color: string;
+  created_at: string;
 }
 
 export interface AnnotationImage {
@@ -33,11 +41,23 @@ export interface CreatePolygonPayload {
   points: Point[];
   label?: string;
   color?: string;
+  label_position?: { x: number; y: number } | null;
 }
 
 export interface UpdatePolygonPayload {
   points?: Point[];
   label?: string;
+  color?: string;
+  label_position?: { x: number; y: number } | null;
+}
+
+export interface CreateLabelPayload {
+  name: string;
+  color: string;
+}
+
+export interface UpdateLabelPayload {
+  name?: string;
   color?: string;
 }
 

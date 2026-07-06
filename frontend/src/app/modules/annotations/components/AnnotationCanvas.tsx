@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useAnnotationStore } from "@/app/modules/annotations/store/useAnnotationStore";
 import { Point, Polygon } from "@/app/types/annotations";
+import { LabelBadge } from "./LabelBadge";
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
@@ -201,8 +202,10 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
     addPointToCurrentPolygon,
     undoLastPoint,
     redoLastPoint,
-    saveCurrentPolygon,
     clearCurrentPolygon,
+    saveCurrentPolygon,
+    selectPolygon,
+    deletePolygon,
   } = useAnnotationStore();
 
   const selectedImage = images.find((img) => img.id === selectedImageId);
@@ -329,10 +332,57 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
         e.preventDefault();
         redoLastPoint();
       }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (currentPolygonPoints.length >= 3) {
+          saveCurrentPolygon();
+        }
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        clearCurrentPolygon();
+        selectPolygon(null);
+      }
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (selectedPolygonId) {
+          e.preventDefault();
+          deletePolygon(selectedPolygonId);
+        }
+      }
+      if (e.key === "Tab") {
+        e.preventDefault();
+        if (selectedImage?.polygons && selectedImage.polygons.length > 0) {
+          const polys = selectedImage.polygons;
+          if (!selectedPolygonId) {
+            selectPolygon(polys[0].id);
+          } else {
+            const idx = polys.findIndex(p => p.id === selectedPolygonId);
+            if (idx !== -1) {
+              selectPolygon(polys[(idx + 1) % polys.length].id);
+            }
+          }
+        }
+      }
+      if (e.code === "Space") {
+        e.preventDefault();
+        isPanningRef.current = true;
+      }
     };
+    
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        isPanningRef.current = false;
+        dragStartRef.current = null;
+      }
+    };
+
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [undoLastPoint, redoLastPoint]);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, [undoLastPoint, redoLastPoint, currentPolygonPoints, saveCurrentPolygon, clearCurrentPolygon, selectPolygon, deletePolygon, selectedPolygonId, selectedImage]);
 
   // ─── Interaction Helpers ────────────────────────────────────────────────────
 
@@ -501,6 +551,20 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
         onMouseLeave={handleMouseLeave}
         onContextMenu={(e) => e.preventDefault()}
       />
+
+      {/* Render Label Badges */}
+      {selectedImage?.polygons.map((poly) => (
+        poly.label !== "__crop__" && (
+          <LabelBadge
+            key={poly.id}
+            polygon={poly}
+            zoom={zoom}
+            pan={pan}
+            canvasW={canvasRef.current?.width || 0}
+            canvasH={canvasRef.current?.height || 0}
+          />
+        )
+      ))}
 
       {toolMode !== "box" && currentPolygonPoints.length > 0 && (
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-sm border border-border text-xs px-3 py-1.5 rounded-full text-muted-foreground pointer-events-none shadow-lg">

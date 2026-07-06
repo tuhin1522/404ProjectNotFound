@@ -6,6 +6,7 @@ import {
   ZoomIn, ZoomOut, Expand, Maximize, ChevronLeft, ChevronRight, Crop, Square
 } from "lucide-react";
 import { useAnnotationStore } from "@/app/modules/annotations/store/useAnnotationStore";
+import { LabelManager } from "./LabelManager";
 
 const PRESET_COLORS = [
   "#6366f1", // indigo
@@ -23,10 +24,8 @@ export default function AnnotationToolbar() {
     currentPolygonPoints,
     redoStack,
     currentColor,
-    currentLabel,
     selectedImageId,
     setColor,
-    setLabel,
     undoLastPoint,
     redoLastPoint,
     clearCurrentPolygon,
@@ -42,26 +41,17 @@ export default function AnnotationToolbar() {
     images,
   } = useAnnotationStore();
 
-  const [labelInput, setLabelInput] = useState(currentLabel);
-  useEffect(() => {
-    setLabelInput(currentLabel);
-  }, [currentLabel]);
-
   const isDrawing = currentPolygonPoints.length > 0;
   const canUndo = currentPolygonPoints.length > 0;
   const canRedo = redoStack.length > 0;
   const canSave = currentPolygonPoints.length >= 3;
 
   const handleSave = async () => {
-    setLabel(labelInput);
-    await saveCurrentPolygon(labelInput);
-    setLabelInput("");
+    await saveCurrentPolygon();
   };
 
   const handleCancel = () => {
     clearCurrentPolygon();
-    setLabelInput("");
-    setLabel("");
   };
 
   return (
@@ -238,31 +228,8 @@ export default function AnnotationToolbar() {
 
         <div className="w-px h-5 bg-border" />
 
-        {/* Label input */}
-        <div className="flex items-center gap-2 flex-1 min-w-32">
-          <Tag size={13} className="text-muted-foreground flex-shrink-0" />
-          <input
-            type="text"
-            placeholder="Label (optional)"
-            value={labelInput}
-            onChange={(e) => {
-              setLabelInput(e.target.value);
-              setLabel(e.target.value);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && canSave) handleSave();
-              if (e.key === "z" && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
-                e.preventDefault();
-                undoLastPoint();
-              }
-              if (e.key === "z" && (e.ctrlKey || e.metaKey) && e.shiftKey) {
-                e.preventDefault();
-                redoLastPoint();
-              }
-            }}
-            className="text-xs bg-transparent border-b border-border focus:border-primary outline-none text-foreground placeholder:text-muted-foreground w-full py-0.5 transition-colors"
-          />
-        </div>
+        {/* Label Manager */}
+        <LabelManager />
 
         <div className="w-px h-5 bg-border" />
 

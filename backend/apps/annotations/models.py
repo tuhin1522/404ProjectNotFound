@@ -66,6 +66,26 @@ class AnnotationImage(TimeStampedModel):
         return f"[{self.pk}] {self.name} — {self.user.email}"
 
 
+class AnnotationLabel(TimeStampedModel):
+    """
+    A reusable label taxonomy per user.
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='annotation_labels',
+    )
+    name = models.CharField(max_length=100)
+    color = models.CharField(max_length=20, default='#6366f1')
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = [['user', 'name']]
+
+    def __str__(self):
+        return f"{self.name} ({self.color})"
+
+
 class Polygon(TimeStampedModel):
     """
     A single drawn polygon on an AnnotationImage.
@@ -98,6 +118,11 @@ class Polygon(TimeStampedModel):
     )
     label = models.CharField(max_length=100, blank=True, default='')
     color = models.CharField(max_length=20, blank=True, default='#6366f1')
+    label_position = models.JSONField(
+        blank=True,
+        null=True,
+        help_text='Offset {x, y} for draggable label badge relative to polygon.',
+    )
 
     class Meta:
         ordering = ['created_at']
