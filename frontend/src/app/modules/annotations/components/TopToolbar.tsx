@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React, { useRef, useState, useCallback } from "react";
 import {
   ScanLine, Upload, Save, Download, Maximize2, Minimize2,
@@ -76,14 +77,14 @@ export default function TopToolbar() {
   return (
     <header className="flex-shrink-0 h-[60px] bg-[#111111] border-b border-[#2a2a2a] flex items-center px-4 gap-4 z-50">
       {/* Logo + Project Name */}
-      <div className="flex items-center gap-2.5 flex-shrink-0">
+      <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
         <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
           <ScanLine size={16} className="text-indigo-400" />
         </div>
         <div className="hidden sm:block">
-          <p className="text-sm font-bold text-white leading-tight">404ProjectNotFound</p>
+          <p className="text-sm font-bold text-white leading-tight group-hover:text-indigo-300 transition-colors">404ProjectNotFound</p>
         </div>
-      </div>
+      </Link>
 
       <div className="w-px h-8 bg-[#2a2a2a]" />
 

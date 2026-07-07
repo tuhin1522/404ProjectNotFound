@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import {
-  Trash2, Tag, Edit2, Check, X, Eye, EyeOff,
+  Trash2, Edit2, Check, X, Eye, EyeOff,
   ChevronDown, ChevronRight, Plus, Circle, Square, Pencil, Scissors
 } from "lucide-react";
 import { useAnnotationStore } from "@/app/modules/annotations/store/useAnnotationStore";
@@ -55,15 +55,14 @@ function ObjectItem({
 
   useEffect(() => {
     if (isEditing) inputRef.current?.focus();
-    else setEditLabel(polygon.label || "");
-  }, [isEditing, polygon.label]);
+  }, [isEditing]);
 
   const handleSave = async (e?: React.MouseEvent | React.KeyboardEvent) => {
     e?.stopPropagation();
+    setIsEditing(false);
     if (editLabel.trim() !== (polygon.label || "")) {
       await onUpdate(polygon.id, { label: editLabel.trim() });
     }
-    setIsEditing(false);
   };
 
   const handleCancel = (e: React.MouseEvent | React.KeyboardEvent) => {
@@ -141,7 +140,11 @@ function ObjectItem({
               {isHidden ? <EyeOff size={11} /> : <Eye size={11} />}
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditLabel(polygon.label || "");
+                setIsEditing(true);
+              }}
               className="p-1 text-[#555] hover:text-[#aaa] transition-colors"
               title="Rename"
             >
@@ -205,14 +208,31 @@ function LabelsPanel() {
   } = useAnnotationStore();
 
   const [isCreating, setIsCreating] = useState(false);
+  const [editingLabelId, setEditingLabelId] = useState<number | null>(null);
   const [draftName, setDraftName] = useState("");
   const [draftColor, setDraftColor] = useState("#6366f1");
+
+  const [editName, setEditName] = useState("");
+  const [editColor, setEditColor] = useState("#6366f1");
 
   const handleCreate = async () => {
     if (!draftName.trim()) return;
     await createLabel(draftName.trim(), draftColor);
     setIsCreating(false);
     setDraftName("");
+  };
+
+  const startEdit = (label: AnnotationLabel) => {
+    setIsCreating(false);
+    setEditingLabelId(label.id);
+    setEditName(label.name);
+    setEditColor(label.color);
+  };
+
+  const handleUpdate = async (id: number) => {
+    if (!editName.trim()) return;
+    setEditingLabelId(null);
+    await updateLabel(id, { name: editName.trim(), color: editColor });
   };
 
   return (
@@ -222,23 +242,69 @@ function LabelsPanel() {
       )}
       <div className="flex flex-col gap-1">
         {labels.map((label: AnnotationLabel) => (
-          <button
-            key={label.id}
-            onClick={() => setActiveLabel(activeLabelId === label.id ? null : label.id)}
-            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left text-xs transition-all ${
-              activeLabelId === label.id
-                ? "bg-indigo-500/15 border border-indigo-500/30 text-white"
-                : "text-[#888] hover:bg-[#1e1e1e] border border-transparent"
-            }`}
-          >
-            <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: label.color }} />
-            <span className="flex-1 truncate font-medium">{label.name}</span>
-            {activeLabelId === label.id && (
-              <span className="text-[9px] text-indigo-400 font-bold">ACTIVE</span>
-            )}
-          </button>
+          <div key={label.id} className="group flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all border border-transparent hover:bg-[#1e1e1e]">
+            <button
+              onClick={() => setActiveLabel(activeLabelId === label.id ? null : label.id)}
+              className={`flex items-center gap-2.5 flex-1 min-w-0 text-left ${
+                activeLabelId === label.id ? "text-white" : "text-[#888]"
+              }`}
+            >
+              <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: label.color }} />
+              <span className="flex-1 truncate font-medium">{label.name}</span>
+              {activeLabelId === label.id && (
+                <span className="text-[9px] text-indigo-400 font-bold">ACTIVE</span>
+              )}
+            </button>
+
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={(e) => { e.stopPropagation(); startEdit(label); }}
+                className="p-1 text-[#555] hover:text-[#aaa] transition-colors"
+                title="Edit label"
+              >
+                <Edit2 size={11} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); deleteLabel(label.id); }}
+                className="p-1 text-[#555] hover:text-red-400 transition-colors"
+                title="Delete label"
+              >
+                <Trash2 size={11} />
+              </button>
+            </div>
+          </div>
         ))}
       </div>
+
+      {editingLabelId !== null && (
+        <div className="mt-2 flex flex-col gap-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-3">
+          <input
+            autoFocus
+            className="w-full bg-[#111] border border-[#333] rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-indigo-500 placeholder-[#444]"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            placeholder="Label name"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleUpdate(editingLabelId);
+              if (e.key === "Escape") setEditingLabelId(null);
+            }}
+          />
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={editColor}
+              onChange={(e) => setEditColor(e.target.value)}
+              className="w-7 h-7 p-0.5 border border-[#333] rounded-lg cursor-pointer bg-[#111]"
+            />
+            <button onClick={() => setEditingLabelId(null)} className="ml-auto p-1 text-[#555] hover:text-[#aaa]">
+              <X size={13} />
+            </button>
+            <button onClick={() => handleUpdate(editingLabelId)} className="p-1 text-indigo-400 hover:text-indigo-300">
+              <Check size={13} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {isCreating && (
         <div className="mt-2 flex flex-col gap-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-3">

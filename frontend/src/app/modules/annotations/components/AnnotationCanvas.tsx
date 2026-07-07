@@ -311,10 +311,15 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
 
   const selectedImage = images.find((img) => img.id === selectedImageId);
 
+  const setCanvasElement = useCallback((node: HTMLCanvasElement | null) => {
+    canvasRef.current = node;
+    sharedCanvasRef.current = node;
+  }, []);
+
   // Expose canvasRef to shared module reference
   useEffect(() => {
     sharedCanvasRef.current = canvasRef.current;
-  }, [canvasRef]);
+  }, []);
 
   // ─── Canvas sizing ──────────────────────────────────────────────────────────
   const [canvasSize, setCanvasSize] = useState({ w: 0, h: 0 });
@@ -338,7 +343,16 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
     resize();
     const ro = new ResizeObserver(resize);
     if (containerRef.current) ro.observe(containerRef.current);
-    return () => ro.disconnect();
+    const handleViewportChange = () => {
+      requestAnimationFrame(resize);
+    };
+    window.addEventListener("resize", handleViewportChange);
+    document.addEventListener("fullscreenchange", handleViewportChange);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", handleViewportChange);
+      document.removeEventListener("fullscreenchange", handleViewportChange);
+    };
   }, [resize]);
 
   // ─── Image loading ──────────────────────────────────────────────────────────
@@ -775,7 +789,7 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
       className="flex-1 relative bg-[#141414] overflow-hidden"
     >
       <canvas
-        ref={canvasRef}
+        ref={setCanvasElement}
         className="absolute inset-0 w-full h-full"
         style={{ cursor: getCursor() }}
         onClick={handleClick}

@@ -43,10 +43,36 @@ export async function downloadOriginalImage(imageUrl: string, name: string): Pro
  * Download the annotated canvas as a PNG image.
  */
 export function downloadAnnotatedImage(canvas: HTMLCanvasElement, name: string): void {
-  canvas.toBlob((blob) => {
-    if (!blob) return;
-    triggerDownload(blob, `${name.replace(/\.[^.]+$/, "")}_annotated.png`);
-  }, "image/png");
+  const filename = `${name.replace(/\.[^.]+$/, "")}_annotated.png`;
+
+  try {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        triggerDownload(blob, filename);
+        return;
+      }
+
+      try {
+        const dataUrl = canvas.toDataURL("image/png");
+        fetch(dataUrl)
+          .then((response) => response.blob())
+          .then((fallbackBlob) => triggerDownload(fallbackBlob, filename))
+          .catch(() => undefined);
+      } catch {
+        return;
+      }
+    }, "image/png");
+  } catch {
+    try {
+      const dataUrl = canvas.toDataURL("image/png");
+      fetch(dataUrl)
+        .then((response) => response.blob())
+        .then((blob) => triggerDownload(blob, filename))
+        .catch(() => undefined);
+    } catch {
+      return;
+    }
+  }
 }
 
 function triggerDownload(blob: Blob, filename: string): void {
