@@ -3,8 +3,8 @@
 import React, {
   useRef,
   useEffect,
+  useLayoutEffect,
   useCallback,
-  useState,
   memo,
 } from "react";
 import { useAnnotationStore } from "@/app/modules/annotations/store/useAnnotationStore";
@@ -321,9 +321,6 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
     sharedCanvasRef.current = canvasRef.current;
   }, []);
 
-  // ─── Canvas sizing ──────────────────────────────────────────────────────────
-  const [canvasSize, setCanvasSize] = useState({ w: 0, h: 0 });
-
   const resize = useCallback(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
@@ -335,11 +332,12 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
     if (canvas.width !== newW || canvas.height !== newH) {
       canvas.width = newW;
       canvas.height = newH;
-      setCanvasSize({ w: newW, h: newH });
     }
-  }, [canvasSize]);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+  }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     resize();
     const ro = new ResizeObserver(resize);
     if (containerRef.current) ro.observe(containerRef.current);
@@ -366,8 +364,9 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
     img.src = selectedImage.image_url;
     img.onload = () => {
       imgRef.current = img;
+      resize();
     };
-  }, [selectedImage?.image_url]);
+  }, [selectedImage?.image_url, resize]);
 
   // ─── Render loop ────────────────────────────────────────────────────────────
   const render = useCallback(() => {
