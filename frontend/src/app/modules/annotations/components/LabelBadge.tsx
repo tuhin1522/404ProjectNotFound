@@ -6,27 +6,24 @@ interface LabelBadgeProps {
   polygon: Polygon;
   zoom: number;
   pan: { x: number; y: number };
+  box: { ox: number; oy: number; w: number; h: number };
+  dpr: number;
   canvasW: number;
   canvasH: number;
 }
 
-// Temp IDs are generated via Date.now() and are always > 1 trillion.
-// Real DB IDs are sequential integers, so this threshold safely distinguishes them.
 const TEMP_ID_THRESHOLD = 1_000_000_000_000;
 
-export function LabelBadge({ polygon, zoom, pan, canvasW, canvasH }: LabelBadgeProps) {
+export function LabelBadge({ polygon, zoom, pan, box, dpr, canvasW, canvasH }: LabelBadgeProps) {
   const { updatePolygon, selectPolygon, selectedPolygonId } = useAnnotationStore();
 
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(polygon.label);
 
-  // Local state for smooth dragging before saving to backend
   const [localPos, setLocalPos] = useState<{ x: number; y: number } | null>(
     polygon.label_position || null
   );
 
-  // Use a ref to hold the latest localPos so we can read it in the
-  // pointerup closure without triggering re-renders or breaking React rules.
   const localPosRef = useRef(localPos);
   const isDraggingRef = useRef(false);
 
@@ -39,34 +36,36 @@ export function LabelBadge({ polygon, zoom, pan, canvasW, canvasH }: LabelBadgeP
     setDraftName(polygon.label);
   }, [polygon.label_position, polygon.label]);
 
-  // Calculate default position if no custom position is saved
   const getDefaultPosition = () => {
     if (polygon.points.length === 0) return { x: 0, y: 0 };
-
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
-
     polygon.points.forEach((p) => {
-      const ix = p.x * canvasW;
-      const iy = p.y * canvasH;
-      if (ix < minX) minX = ix;
-      if (ix > maxX) maxX = ix;
-      if (iy < minY) minY = iy;
+      if (p.x < minX) minX = p.x;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y;
     });
-
-    // Centered above bounding box top edge
-    return { x: (minX + maxX) / 2, y: minY - 12 };
+    return { x: (minX + maxX) / 2, y: minY - 0.02 };
   };
 
-  const getScreenPosition = (imgPos: { x: number; y: number }) => {
-    let sx = imgPos.x - canvasW / 2;
-    let sy = imgPos.y - canvasH / 2;
+  const getScreenPosition = (relPos: { x: number; y: number }) => {
+    if (!box) return { x: 0, y: 0 };
+    
+    // 1. Get position in canvas internal coordinates before pan/zoom
+    const ix = box.ox + relPos.x * box.w;
+    const iy = box.oy + relPos.y * box.h;
+
+    // 2. Apply pan and zoom
+    let sx = ix - canvasW / 2;
+    let sy = iy - canvasH / 2;
     sx = sx * zoom;
     sy = sy * zoom;
     sx = sx + (canvasW / 2 + pan.x);
     sy = sy + (canvasH / 2 + pan.y);
-    return { x: sx, y: sy };
+
+    // 3. Convert from canvas internal coordinates to CSS coordinates
+    return { x: sx / dpr, y: sy / dpr };
   };
 
   const currentImgPos = localPos || getDefaultPosition();
@@ -75,7 +74,6 @@ export function LabelBadge({ polygon, zoom, pan, canvasW, canvasH }: LabelBadgeP
   const handlePointerDown = (e: React.PointerEvent) => {
     e.stopPropagation();
     selectPolygon(polygon.id);
-
     if (isEditing) return;
 
     const startX = e.clientX;
@@ -84,12 +82,27 @@ export function LabelBadge({ polygon, zoom, pan, canvasW, canvasH }: LabelBadgeP
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
       isDraggingRef.current = true;
-      const dxImg = (moveEvent.clientX - startX) / zoom;
-      const dyImg = (moveEvent.clientY - startY) / zoom;
+      if (!box) return;
+      
+      // Convert dx/dy in CSS pixels to relative coordinates
+      const dxCSS = moveEvent.clientX - startX;
+      const dyCSS = moveEvent.clientY - startY;
+
+      // CSS -> internal pixels
+      const dxInternal = dxCSS * dpr;
+      const dyInternal = dyCSS * dpr;
+
+      // Remove zoom
+      const dxUnzoomed = dxInternal / zoom;
+      const dyUnzoomed = dyInternal / zoom;
+
+      // Remove box scale (to relative 0-1)
+      const dxRel = dxUnzoomed / box.w;
+      const dyRel = dyUnzoomed / box.h;
 
       const newPos = {
-        x: startImgPos.x + dxImg,
-        y: startImgPos.y + dyImg,
+        x: startImgPos.x + dxRel,
+        y: startImgPos.y + dyRel,
       };
       setLocalPos(newPos);
       localPosRef.current = newPos;
@@ -98,8 +111,6 @@ export function LabelBadge({ polygon, zoom, pan, canvasW, canvasH }: LabelBadgeP
     const handlePointerUp = () => {
       document.removeEventListener("pointermove", handlePointerMove);
       document.removeEventListener("pointerup", handlePointerUp);
-
-      // Only save if we actually dragged, and only if this is a real (non-temp) polygon
       if (isDraggingRef.current) {
         isDraggingRef.current = false;
         const finalPos = localPosRef.current;
@@ -118,17 +129,15 @@ export function LabelBadge({ polygon, zoom, pan, canvasW, canvasH }: LabelBadgeP
   return (
     <div
       className={`absolute z-20 flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold text-white shadow-lg transition-all duration-150 cursor-grab active:cursor-grabbing select-none hover:scale-105 hover:brightness-110 ${
-        selectedPolygonId === polygon.id
-          ? "ring-2 ring-white/80 scale-105"
-          : ""
+        selectedPolygonId === polygon.id ? "ring-2 ring-white/80 scale-105" : ""
       }`}
       style={{
         left: screenPos.x,
         top: screenPos.y,
-        backgroundColor: polygon.color,
+        backgroundColor: polygon.color || "#6366f1",
         transform: "translate(-50%, -100%)",
         touchAction: "none",
-        boxShadow: `0 2px 8px ${polygon.color}66`,
+        boxShadow: `0 2px 8px ${polygon.color || "#6366f1"}66`,
       }}
       onPointerDown={handlePointerDown}
       onDoubleClick={(e) => {

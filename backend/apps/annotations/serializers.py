@@ -25,9 +25,9 @@ class PolygonSerializer(serializers.ModelSerializer):
         Ensure points is a non-empty list of {x, y} dicts with
         numeric values in the [0.0, 1.0] range.
         """
-        if not isinstance(value, list) or len(value) < 3:
+        if not isinstance(value, list) or len(value) < 2:
             raise serializers.ValidationError(
-                'A polygon must have at least 3 points.'
+                'A shape must have at least 2 points.'
             )
         for idx, pt in enumerate(value):
             if not isinstance(pt, dict) or 'x' not in pt or 'y' not in pt:

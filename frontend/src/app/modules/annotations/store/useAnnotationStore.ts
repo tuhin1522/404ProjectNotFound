@@ -27,9 +27,12 @@ interface AnnotationStore {
   currentColor: string;
   currentLabel: string;
   selectedPolygonId: number | null;
-  toolMode: "draw" | "crop" | "box";
+  toolMode: "draw" | "crop" | "box" | "ellipse" | "pan";
   zoom: number;
   pan: { x: number; y: number };
+
+  // ─── Visibility State ────────────────────────────────────────────────────────
+  hiddenPolygonIds: Set<number>;
 
   // ─── Labels State ───────────────────────────────────────────────────────────
   labels: AnnotationLabel[];
@@ -45,7 +48,7 @@ interface AnnotationStore {
   deleteImage: (id: number) => Promise<void>;
 
   // ─── Actions: Drawing & Canvas ──────────────────────────────────────────────
-  setToolMode: (mode: "draw" | "crop" | "box") => void;
+  setToolMode: (mode: "draw" | "crop" | "box" | "ellipse" | "pan") => void;
   setZoom: (zoom: number | ((z: number) => number)) => void;
   setPan: (pan: { x: number; y: number } | ((p: { x: number; y: number }) => { x: number; y: number })) => void;
   addPointToCurrentPolygon: (point: Point) => void;
@@ -55,6 +58,9 @@ interface AnnotationStore {
   setColor: (color: string) => void;
   setLabel: (label: string) => void;
   selectPolygon: (id: number | null) => void;
+
+  // ─── Actions: Visibility ────────────────────────────────────────────────────
+  togglePolygonVisibility: (id: number) => void;
 
   // ─── Actions: Polygons ──────────────────────────────────────────────────────
   saveCurrentPolygon: (labelOverride?: string) => Promise<void>;
@@ -84,6 +90,8 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
   toolMode: "draw",
   zoom: 1,
   pan: { x: 0, y: 0 },
+
+  hiddenPolygonIds: new Set<number>(),
 
   labels: [],
   activeLabelId: null,
@@ -200,25 +208,35 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
     set({ currentPolygonPoints: [], redoStack: [] });
   },
 
-  setToolMode: (mode) => set({ toolMode: mode }),
-  
-  setZoom: (zoom) => set((state) => ({ 
-    zoom: typeof zoom === "function" ? zoom(state.zoom) : zoom 
+  setToolMode: (mode) => set({ toolMode: mode, currentPolygonPoints: [], redoStack: [] }),
+
+  setZoom: (zoom) => set((state) => ({
+    zoom: typeof zoom === "function" ? zoom(state.zoom) : zoom
   })),
-  
-  setPan: (pan) => set((state) => ({ 
-    pan: typeof pan === "function" ? pan(state.pan) : pan 
+
+  setPan: (pan) => set((state) => ({
+    pan: typeof pan === "function" ? pan(state.pan) : pan
   })),
 
   setColor: (color: string) => set({ currentColor: color }),
 
-  // setLabel now also clears redo to stay clean
   setLabel: (label: string) => set({ currentLabel: label }),
 
   selectPolygon: (id: number | null) => set({ selectedPolygonId: id }),
 
+  togglePolygonVisibility: (id: number) => {
+    set((state) => {
+      const next = new Set(state.hiddenPolygonIds);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return { hiddenPolygonIds: next };
+    });
+  },
+
   // labelOverride: the toolbar can pass its live input value directly
-  // so the label is never missed even if the user doesn't blur first
   saveCurrentPolygon: async (labelOverride?: string) => {
     const {
       currentPolygonPoints,
@@ -229,12 +247,12 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
       activeLabelId,
     } = get();
 
-    if (!selectedImageId || currentPolygonPoints.length < 3) return;
+    if (!selectedImageId || currentPolygonPoints.length < 2) return;
 
     let finalLabel = (labelOverride !== undefined ? labelOverride : currentLabel).trim();
     let finalColor = currentColor;
 
-    if (activeLabelId) {
+    if (activeLabelId && labelOverride !== "__crop__") {
       const activeLabel = labels.find(l => l.id === activeLabelId);
       if (activeLabel) {
         finalLabel = activeLabel.name;
@@ -395,7 +413,7 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
       const labelToUpdate = state.labels.find(l => l.id === id);
       oldName = labelToUpdate?.name || "";
       const newLabels = state.labels.map(l => l.id === id ? { ...l, ...payload } : l);
-      
+
       const newImages = state.images.map((img) => ({
         ...img,
         polygons: img.polygons.map((p) => {
