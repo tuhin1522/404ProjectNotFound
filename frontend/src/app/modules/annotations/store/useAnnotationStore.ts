@@ -146,9 +146,9 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
         images: [...state.images, newImage],
         selectedImageId: newImage.id,
       }));
-    } catch (err: any) {
-      console.error("Upload failed", err);
-      throw err;
+    } catch (error: unknown) {
+      console.error("Upload failed", error);
+      throw error;
     }
   },
 
@@ -404,6 +404,7 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
       set((state) => ({ labels: [newLabel, ...state.labels], activeLabelId: newLabel.id }));
     } catch (err) {
       console.error("Failed to create label", err);
+      throw err;
     }
   },
 
@@ -435,6 +436,7 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
     } catch (err) {
       console.error("Failed to update label", err);
       get().loadLabels();
+      throw err;
     }
   },
 
@@ -447,6 +449,7 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
       await apiDeleteLabel(id);
     } catch {
       get().loadLabels();
+      throw new Error("Failed to delete label");
     }
   },
 

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Tag, Plus, Edit2, Trash2, Check, X } from "lucide-react";
 import { useAnnotationStore } from "../store/useAnnotationStore";
+import { toast } from "sonner";
 
 const PRESET_COLORS = [
   "#6366f1", // Indigo
@@ -45,15 +46,35 @@ export function LabelManager() {
 
   const handleCreate = async () => {
     if (!draftName.trim()) return;
-    await createLabel(draftName.trim(), draftColor);
+    const name = draftName.trim();
+    const color = draftColor;
     setIsCreating(false);
     setDraftName("");
+    try {
+      await createLabel(name, color);
+      toast.success("Label created.");
+    } catch {
+      setIsCreating(true);
+      setDraftName(name);
+      setDraftColor(color);
+      toast.error("Failed to create label.");
+    }
   };
 
   const handleUpdate = async (id: number) => {
     if (!draftName.trim()) return;
-    await updateLabel(id, { name: draftName.trim(), color: draftColor });
+    const name = draftName.trim();
+    const color = draftColor;
     setEditingId(null);
+    try {
+      await updateLabel(id, { name, color });
+      toast.success("Label updated.");
+    } catch {
+      setEditingId(id);
+      setDraftName(name);
+      setDraftColor(color);
+      toast.error("Failed to update label.");
+    }
   };
 
   const startEdit = (id: number, name: string, color: string) => {

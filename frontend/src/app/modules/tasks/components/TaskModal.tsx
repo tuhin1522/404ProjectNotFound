@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Task, TaskColumn, CreateTaskPayload, UpdateTaskPayload } from "@/app/types/tasks";
 import { useTaskStore } from "@/app/modules/tasks/store/useTaskStore";
 import { X, Loader2, Tag, Plus } from "lucide-react";
-import { cn } from "@/app/lib/utils/utils";
+import { toast } from "sonner";
 
 interface TaskModalProps {
   mode: "create" | "edit";
@@ -25,20 +25,21 @@ const COLUMN_OPTIONS = [
   { value: "done", label: "Done" },
 ] as const;
 
+type Priority = (typeof PRIORITY_OPTIONS)[number]["value"];
+
 export default function TaskModal({ mode, defaultColumn = "todo", task, onClose }: TaskModalProps) {
   const { selectedDate, addTask, editTask } = useTaskStore();
 
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
   const [column, setColumn] = useState<TaskColumn>(task?.column ?? defaultColumn);
-  const [priority, setPriority] = useState(task?.priority ?? "medium");
+  const [priority, setPriority] = useState<Priority>(task?.priority ?? "medium");
   const [dueDate, setDueDate] = useState(task?.due_date ?? selectedDate);
   const [tags, setTags] = useState<string[]>(task?.tags ?? []);
   const [tagInput, setTagInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", handler);
@@ -46,18 +47,19 @@ export default function TaskModal({ mode, defaultColumn = "todo", task, onClose 
   }, [onClose]);
 
   const addTag = () => {
-    const t = tagInput.trim();
-    if (t && !tags.includes(t)) {
-      setTags([...tags, t]);
+    const value = tagInput.trim();
+    if (value && !tags.includes(value)) {
+      setTags([...tags, value]);
     }
     setTagInput("");
   };
 
-  const removeTag = (tag: string) => setTags(tags.filter((t) => t !== tag));
+  const removeTag = (tag: string) => setTags(tags.filter((currentTag) => currentTag !== tag));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+
     setIsLoading(true);
     setError("");
 
@@ -72,6 +74,7 @@ export default function TaskModal({ mode, defaultColumn = "todo", task, onClose 
           tags,
         };
         await addTask(payload);
+        toast.success("Task created.");
       } else if (task) {
         const payload: UpdateTaskPayload = {
           title: title.trim(),
@@ -82,10 +85,12 @@ export default function TaskModal({ mode, defaultColumn = "todo", task, onClose 
           tags,
         };
         await editTask(task.id, payload);
+        toast.success("Task updated.");
       }
       onClose();
-    } catch (err: any) {
+    } catch {
       setError("Failed to save task. Please try again.");
+      toast.error("Failed to save task. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -96,12 +101,9 @@ export default function TaskModal({ mode, defaultColumn = "todo", task, onClose 
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
 
-      {/* Modal */}
       <div className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="text-lg font-bold text-foreground">
             {mode === "create" ? "New Task" : "Edit Task"}
@@ -114,15 +116,13 @@ export default function TaskModal({ mode, defaultColumn = "todo", task, onClose 
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        <form id="task-form" onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
           {error && (
             <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
               {error}
             </div>
           )}
 
-          {/* Title */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">
               Title <span className="text-destructive">*</span>
@@ -138,7 +138,6 @@ export default function TaskModal({ mode, defaultColumn = "todo", task, onClose 
             />
           </div>
 
-          {/* Description */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">
               Description
@@ -152,7 +151,6 @@ export default function TaskModal({ mode, defaultColumn = "todo", task, onClose 
             />
           </div>
 
-          {/* Row: Column + Priority */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">Column</label>
@@ -161,8 +159,10 @@ export default function TaskModal({ mode, defaultColumn = "todo", task, onClose 
                 onChange={(e) => setColumn(e.target.value as TaskColumn)}
                 className="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
               >
-                {COLUMN_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                {COLUMN_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -171,17 +171,18 @@ export default function TaskModal({ mode, defaultColumn = "todo", task, onClose 
               <label className="block text-sm font-medium text-foreground mb-1.5">Priority</label>
               <select
                 value={priority}
-                onChange={(e) => setPriority(e.target.value as any)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPriority(e.target.value as Priority)}
                 className="w-full px-3 py-2.5 bg-background border border-input rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary text-sm"
               >
-                {PRIORITY_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                {PRIORITY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Due Date */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">Due Date</label>
             <input
@@ -192,7 +193,6 @@ export default function TaskModal({ mode, defaultColumn = "todo", task, onClose 
             />
           </div>
 
-          {/* Tags */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">Tags</label>
             <div className="flex gap-2">
@@ -240,7 +240,6 @@ export default function TaskModal({ mode, defaultColumn = "todo", task, onClose 
           </div>
         </form>
 
-        {/* Footer */}
         <div className="flex justify-end gap-3 px-6 py-4 border-t border-border bg-secondary/30">
           <button
             type="button"
@@ -250,7 +249,8 @@ export default function TaskModal({ mode, defaultColumn = "todo", task, onClose 
             Cancel
           </button>
           <button
-            onClick={handleSubmit}
+            type="submit"
+            form="task-form"
             disabled={isLoading || !title.trim()}
             className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >

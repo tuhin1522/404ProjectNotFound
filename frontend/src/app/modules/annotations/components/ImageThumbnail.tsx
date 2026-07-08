@@ -3,6 +3,7 @@
 import { memo } from "react";
 import { AnnotationImage } from "@/app/types/annotations";
 import { Shapes, Trash2 } from "lucide-react";
+import { swalConfirm, swalError, swalSuccess } from "@/app/lib/utils/swal";
 
 interface ImageThumbnailProps {
   image: AnnotationImage;
@@ -17,6 +18,24 @@ const ImageThumbnail = memo(function ImageThumbnail({
   onSelect,
   onDelete,
 }: ImageThumbnailProps) {
+  const handleDelete = async () => {
+    const confirmed = await swalConfirm({
+      title: "Delete image?",
+      text: `This will permanently delete \"${image.name}\" and its annotations.`,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      onDelete(image.id);
+      await swalSuccess({ title: "Image deleted" });
+    } catch {
+      await swalError({ title: "Delete failed", text: "Please try again." });
+    }
+  };
+
   return (
     <div
       className={`
@@ -48,7 +67,7 @@ const ImageThumbnail = memo(function ImageThumbnail({
       <button
         onClick={(e) => {
           e.stopPropagation();
-          onDelete(image.id);
+          void handleDelete();
         }}
         className="
           absolute bottom-1 right-1 w-6 h-6 rounded-lg

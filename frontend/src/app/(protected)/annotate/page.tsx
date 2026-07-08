@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useRequireAuth } from "@/app/hooks/useRequireAuth";
 import { useAnnotationStore } from "@/app/modules/annotations/store/useAnnotationStore";
 import TopToolbar from "@/app/modules/annotations/components/TopToolbar";

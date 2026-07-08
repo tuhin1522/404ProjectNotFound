@@ -69,7 +69,7 @@ export default function Footer() {
             © {new Date().getFullYear()} 404 Project Not Found. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
-            "Believe in the code that believes in you!" 🕶️🔥
+            &ldquo;Believe in the code that believes in you!&rdquo; 🕶️🔥
           </p>
         </div>
       </div>

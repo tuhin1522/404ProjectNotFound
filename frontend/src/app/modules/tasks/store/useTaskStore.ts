@@ -58,7 +58,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     try {
       const tasks = await fetchTasksByDate(date);
       set({ columns: tasksToColumns(tasks), isLoading: false });
-    } catch (err: any) {
+    } catch {
       set({ error: "Failed to load tasks.", isLoading: false });
     }
   },

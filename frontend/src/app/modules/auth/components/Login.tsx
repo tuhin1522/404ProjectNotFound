@@ -6,6 +6,7 @@ import Link from "next/link";
 import { authService } from "@/app/services/authService";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { LogIn, Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -16,6 +17,27 @@ export default function Login() {
   const router = useRouter();
   const checkAuth = useAuthStore((state) => state.checkAuth);
 
+  const getErrorMessage = (error: unknown) => {
+    if (typeof error === "object" && error !== null && "response" in error) {
+      const response = (error as {
+        response?: {
+          data?: {
+            message?: string;
+            detail?: string;
+          };
+        };
+      }).response;
+
+      return (
+        response?.data?.message ||
+        response?.data?.detail ||
+        "Invalid credentials or server error."
+      );
+    }
+
+    return "Invalid credentials or server error.";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -24,13 +46,13 @@ export default function Login() {
     try {
       await authService.login({ email, password });
       await checkAuth(); // Populate the global user state
+      toast.success("Signed in successfully.");
       router.push("/tasks");
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message || 
-        err.response?.data?.detail || 
-        "Invalid credentials or server error."
-      );
+    } catch (err: unknown) {
+      const message = getErrorMessage(err);
+
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -131,7 +153,7 @@ export default function Login() {
           
           <div className="bg-secondary/50 px-8 py-4 border-t border-border text-center">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
+              Do not have an account?{" "}
               <Link href="/signup" className="font-medium text-primary hover:text-primary/80 transition-colors">
                 Sign up now
               </Link>

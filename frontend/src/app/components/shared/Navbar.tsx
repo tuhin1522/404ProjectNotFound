@@ -7,6 +7,7 @@ import { Kanban, ImageIcon, LogOut, LogIn, UserPlus, Menu, X, Sun, Moon } from "
 import { useState } from "react";
 import { cn } from "@/app/lib/utils/utils";
 import { useTheme } from "@/app/providers/ThemeProvider";
+import { swalConfirm } from "@/app/lib/utils/swal";
 
 const NAV_LINKS = [
   { href: "/tasks", label: "Tasks", icon: Kanban },
@@ -20,8 +21,18 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async (onComplete?: () => void) => {
+    const confirmed = await swalConfirm({
+      title: "Logout?",
+      text: "You will need to sign in again to access protected pages.",
+      confirmButtonText: "Logout",
+      cancelButtonText: "Stay signed in",
+    });
+
+    if (!confirmed) return;
+
     logout();
+    onComplete?.();
     router.push("/");
   };
 
@@ -70,7 +81,7 @@ export default function Navbar() {
                 Hi, <span className="font-medium text-foreground">{user.first_name || user.email}</span>
               </span>
               <button
-                onClick={handleLogout}
+                onClick={() => { void handleLogout(); }}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
               >
                 <LogOut size={16} />
@@ -137,7 +148,7 @@ export default function Navbar() {
             </button>
             {isAuthenticated && user ? (
               <button
-                onClick={() => { handleLogout(); setMobileOpen(false); }}
+                onClick={() => { void handleLogout(() => setMobileOpen(false)); }}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
               >
                 <LogOut size={16} />

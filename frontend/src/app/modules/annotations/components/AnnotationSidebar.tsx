@@ -8,6 +8,8 @@ import {
 import { useAnnotationStore } from "@/app/modules/annotations/store/useAnnotationStore";
 import { Polygon, AnnotationLabel } from "@/app/types/annotations";
 import { inferShapeType } from "../utils/downloadUtils";
+import { swalConfirm, swalError, swalSuccess } from "@/app/lib/utils/swal";
+import { toast } from "sonner";
 
 // ─── Shape icon helper ────────────────────────────────────────────────────────
 
@@ -61,7 +63,14 @@ function ObjectItem({
     e?.stopPropagation();
     setIsEditing(false);
     if (editLabel.trim() !== (polygon.label || "")) {
-      await onUpdate(polygon.id, { label: editLabel.trim() });
+      try {
+        await onUpdate(polygon.id, { label: editLabel.trim() });
+        toast.success("Object updated.");
+      } catch {
+        setIsEditing(true);
+        setEditLabel(polygon.label || "");
+        toast.error("Failed to update object.");
+      }
     }
   };
 
@@ -151,7 +160,26 @@ function ObjectItem({
               <Edit2 size={11} />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); onDelete(polygon.id); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                void (async () => {
+                  const confirmed = await swalConfirm({
+                    title: "Delete object?",
+                    text: `This will permanently delete \"${displayName}\".`,
+                    confirmButtonText: "Delete",
+                    cancelButtonText: "Cancel",
+                  });
+
+                  if (!confirmed) return;
+
+                  try {
+                    await onDelete(polygon.id);
+                    await swalSuccess({ title: "Object deleted" });
+                  } catch {
+                    await swalError({ title: "Delete failed", text: "Please try again." });
+                  }
+                })();
+              }}
               className="p-1 text-[#555] hover:text-red-400 transition-colors"
               title="Delete"
             >
@@ -217,9 +245,19 @@ function LabelsPanel() {
 
   const handleCreate = async () => {
     if (!draftName.trim()) return;
-    await createLabel(draftName.trim(), draftColor);
+    const name = draftName.trim();
+    const color = draftColor;
     setIsCreating(false);
     setDraftName("");
+    try {
+      await createLabel(name, color);
+      toast.success("Label created.");
+    } catch {
+      setIsCreating(true);
+      setDraftName(name);
+      setDraftColor(color);
+      toast.error("Failed to create label.");
+    }
   };
 
   const startEdit = (label: AnnotationLabel) => {
@@ -231,8 +269,36 @@ function LabelsPanel() {
 
   const handleUpdate = async (id: number) => {
     if (!editName.trim()) return;
+    const name = editName.trim();
+    const color = editColor;
     setEditingLabelId(null);
-    await updateLabel(id, { name: editName.trim(), color: editColor });
+    try {
+      await updateLabel(id, { name, color });
+      toast.success("Label updated.");
+    } catch {
+      setEditingLabelId(id);
+      setEditName(name);
+      setEditColor(color);
+      toast.error("Failed to update label.");
+    }
+  };
+
+  const handleDelete = async (id: number, name: string) => {
+    const confirmed = await swalConfirm({
+      title: "Delete label?",
+      text: `This will permanently delete \"${name}\".`,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await deleteLabel(id);
+      await swalSuccess({ title: "Label deleted" });
+    } catch {
+      await swalError({ title: "Delete failed", text: "Please try again." });
+    }
   };
 
   return (
@@ -265,7 +331,7 @@ function LabelsPanel() {
                 <Edit2 size={11} />
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); deleteLabel(label.id); }}
+                onClick={(e) => { e.stopPropagation(); void handleDelete(label.id, label.name); }}
                 className="p-1 text-[#555] hover:text-red-400 transition-colors"
                 title="Delete label"
               >
@@ -426,7 +492,26 @@ export default function AnnotationSidebar() {
           action={
             visibleObjects.length > 0 ? (
               <button
-                onClick={(e) => { e.stopPropagation(); clearAllPolygons(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void (async () => {
+                    const confirmed = await swalConfirm({
+                      title: "Clear all objects?",
+                      text: "This will delete every object on the current image.",
+                      confirmButtonText: "Clear all",
+                      cancelButtonText: "Cancel",
+                    });
+
+                    if (!confirmed) return;
+
+                    try {
+                      await clearAllPolygons();
+                      await swalSuccess({ title: "Objects cleared" });
+                    } catch {
+                      await swalError({ title: "Clear failed", text: "Please try again." });
+                    }
+                  })();
+                }}
                 className="text-[9px] text-red-500/60 hover:text-red-400 transition-colors font-medium"
                 title="Clear all annotations"
               >

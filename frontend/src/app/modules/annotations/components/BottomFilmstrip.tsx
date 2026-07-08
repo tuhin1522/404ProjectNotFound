@@ -3,6 +3,7 @@
 import { useRef, useCallback, useState } from "react";
 import { ChevronLeft, ChevronRight, Upload, Shapes, Trash2 } from "lucide-react";
 import { useAnnotationStore } from "@/app/modules/annotations/store/useAnnotationStore";
+import { swalConfirm, swalError, swalSuccess } from "@/app/lib/utils/swal";
 
 export default function BottomFilmstrip() {
   const {
@@ -41,6 +42,24 @@ export default function BottomFilmstrip() {
   }, [uploadImage]);
 
   const selectedIndex = images.findIndex(img => img.id === selectedImageId);
+
+  const handleDeleteImage = async (id: number, name: string) => {
+    const confirmed = await swalConfirm({
+      title: "Delete image?",
+      text: `This will permanently delete \"${name}\" and its annotations.`,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await deleteImage(id);
+      await swalSuccess({ title: "Image deleted" });
+    } catch {
+      await swalError({ title: "Delete failed", text: "Please try again." });
+    }
+  };
 
   return (
     <footer className="flex-shrink-0 h-24 bg-[#0d0d0d] border-t border-[#1e1e1e] flex items-center px-2 gap-2">
@@ -135,7 +154,7 @@ export default function BottomFilmstrip() {
 
               {/* Delete on hover */}
               <button
-                onClick={(e) => { e.stopPropagation(); deleteImage(img.id); }}
+                onClick={(e) => { e.stopPropagation(); void handleDeleteImage(img.id, img.name); }}
                 className="absolute top-1 right-1 w-5 h-5 rounded-md bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
                 title="Delete image"
               >

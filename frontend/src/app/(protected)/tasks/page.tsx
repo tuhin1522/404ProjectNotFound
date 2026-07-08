@@ -5,7 +5,7 @@ import { useRequireAuth } from "@/app/hooks/useRequireAuth";
 import { useTaskStore } from "@/app/modules/tasks/store/useTaskStore";
 import DateSelector from "@/app/modules/tasks/components/DateSelector";
 import Board from "@/app/modules/tasks/components/Board";
-import { Plus, LayoutDashboard } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 
 export default function TasksPage() {
   const { isLoading: authLoading, isAuthenticated } = useRequireAuth();

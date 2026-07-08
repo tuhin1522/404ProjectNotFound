@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authService } from "@/app/services/authService";
 import { UserPlus, Mail, Lock, User, Loader2, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -17,6 +18,28 @@ export default function Signup() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+
+  const getErrorMessage = (error: unknown) => {
+    if (typeof error === "object" && error !== null && "response" in error) {
+      const response = (error as {
+        response?: {
+          data?: {
+            message?: string;
+            detail?: string;
+            errors?: unknown;
+          };
+        };
+      }).response;
+
+      return (
+        response?.data?.message ||
+        response?.data?.detail ||
+        (response?.data?.errors ? JSON.stringify(response.data.errors) : "Registration failed.")
+      );
+    }
+
+    return "Registration failed.";
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,18 +54,19 @@ export default function Signup() {
         first_name: firstName,
         last_name: lastName,
       });
-      
-      setSuccess("Account created successfully! Redirecting to login...");
+
+      const successMessage = "Account created successfully. Redirecting to login...";
+      setSuccess(successMessage);
+      toast.success(successMessage);
       setTimeout(() => {
         router.push("/login");
       }, 2000);
       
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message || 
-        err.response?.data?.detail || 
-        (err.response?.data?.errors ? JSON.stringify(err.response.data.errors) : "Registration failed.")
-      );
+    } catch (err: unknown) {
+      const message = getErrorMessage(err);
+
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

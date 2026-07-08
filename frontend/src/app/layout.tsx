@@ -5,6 +5,7 @@ import Navbar from "./components/shared/Navbar";
 import Footer from "./components/shared/Footer";
 import AuthInitializer from "./components/AuthInitializer";
 import { ThemeProvider } from "./providers/ThemeProvider";
+import { SonnerGlobal } from "./components/modern-ui/sonner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <ThemeProvider>
           <AuthInitializer />
+          <SonnerGlobal position="top-right" richColors closeButton />
           <Navbar />
           <main className="flex-1 flex flex-col">
             {children}

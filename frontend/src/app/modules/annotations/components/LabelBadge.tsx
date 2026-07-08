@@ -20,7 +20,7 @@ export function LabelBadge({ polygon, zoom, pan, box, dpr, canvasW, canvasH }: L
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(polygon.label);
 
-  const [localPos, setLocalPos] = useState<{ x: number; y: number } | null>(
+  const [localPos, setLocalPos] = useState<{ x: number; y: number } | null>(() =>
     polygon.label_position || null
   );
 
@@ -30,11 +30,6 @@ export function LabelBadge({ polygon, zoom, pan, box, dpr, canvasW, canvasH }: L
   useEffect(() => {
     localPosRef.current = localPos;
   }, [localPos]);
-
-  useEffect(() => {
-    setLocalPos(polygon.label_position || null);
-    setDraftName(polygon.label);
-  }, [polygon.label_position, polygon.label]);
 
   const getDefaultPosition = () => {
     if (polygon.points.length === 0) return { x: 0, y: 0 };

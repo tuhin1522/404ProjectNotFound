@@ -2,9 +2,9 @@
 annotations/serializers.py
 
 Three serializers:
-  - PolygonSerializer            — full CRUD for a single polygon
-  - AnnotationImageSerializer    — read (list / detail) with nested polygons
-  - AnnotationImageUploadSerializer — write-only; accepts the image file
+    - PolygonSerializer             — full CRUD for a single polygon
+    - AnnotationImageSerializer     — read (list / detail) with nested polygons
+    - AnnotationImageUploadSerializer — write-only; accepts the image file
 """
 from rest_framework import serializers
 from .models import AnnotationImage, Polygon, AnnotationLabel
@@ -69,9 +69,25 @@ class AnnotationLabelSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'color', 'created_at']
         read_only_fields = ['id', 'created_at']
 
+    def validate_name(self, value):
+        name = value.strip()
+        if not name:
+            raise serializers.ValidationError('Label name cannot be empty.')
+
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        if user and AnnotationLabel.objects.filter(user=user, name=name).exclude(pk=getattr(self.instance, 'pk', None)).exists():
+            raise serializers.ValidationError('You already have a label with this name.')
+        return name
+
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if 'name' in validated_data:
+            validated_data['name'] = validated_data['name'].strip()
+        return super().update(instance, validated_data)
 
 
 # ---------------------------------------------------------------------------
