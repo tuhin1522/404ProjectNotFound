@@ -6,7 +6,7 @@ import {
   updateTask as apiUpdateTask,
   deleteTask as apiDeleteTask,
   reorderTasks as apiReorderTasks,
-} from "@/app/modules/tasks/services/taskService";
+} from "@/app/modules/tasks/services/tasks.service";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

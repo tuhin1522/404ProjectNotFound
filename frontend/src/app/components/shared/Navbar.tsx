@@ -18,7 +18,7 @@ export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const pathname = usePathname();
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, mounted } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async (onComplete?: () => void) => {
@@ -73,7 +73,7 @@ export default function Navbar() {
             aria-label="Toggle theme"
             className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            {mounted ? theme === "dark" ? <Sun size={18} /> : <Moon size={18} /> : <Moon size={18} />}
           </button>
           {isAuthenticated && user ? (
             <>
@@ -143,8 +143,8 @@ export default function Navbar() {
               onClick={toggleTheme}
               className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             >
-              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-              {theme === "dark" ? "Light mode" : "Dark mode"}
+              {mounted ? theme === "dark" ? <Sun size={16} /> : <Moon size={16} /> : <Moon size={16} />}
+              {mounted && theme === "dark" ? "Light mode" : "Dark mode"}
             </button>
             {isAuthenticated && user ? (
               <button

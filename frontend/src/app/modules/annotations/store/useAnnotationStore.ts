@@ -12,7 +12,7 @@ import {
   createLabel as apiCreateLabel,
   updateLabel as apiUpdateLabel,
   deleteLabel as apiDeleteLabel,
-} from "../services/annotationService";
+} from "../services/annotations.service";
 
 interface AnnotationStore {
   // ─── Image State ───────────────────────────────────────────────────────────

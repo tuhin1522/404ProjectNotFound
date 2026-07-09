@@ -3,7 +3,7 @@
 import Link from "next/link";
 import React, { useRef, useState, useCallback } from "react";
 import {
-  ScanLine, Upload, Save, Download, Maximize2, Minimize2,
+  ScanLine, Upload, Save, Download, Maximize2, Minimize2, Undo2, Redo2,
   ImageIcon, Shapes, ChevronDown, FileJson, Image as ImageIconLucide,
 } from "lucide-react";
 import { useAnnotationStore } from "@/app/modules/annotations/store/useAnnotationStore";
@@ -19,6 +19,10 @@ export default function TopToolbar() {
     images,
     selectedImageId,
     uploadImage,
+    currentPolygonPoints,
+    redoStack,
+    undoLastPoint,
+    redoLastPoint,
   } = useAnnotationStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -157,6 +161,24 @@ export default function TopToolbar() {
         >
           <Save size={13} />
           <span className="hidden sm:inline">Save</span>
+        </button>
+
+        <button
+          onClick={undoLastPoint}
+          disabled={currentPolygonPoints.length === 0}
+          className="flex items-center justify-center h-8 w-8 rounded-lg bg-[#1e1e1e] border border-[#333] text-[#aaa] hover:text-white hover:border-[#444] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          title="Undo last point (Ctrl+Z)"
+        >
+          <Undo2 size={13} />
+        </button>
+
+        <button
+          onClick={redoLastPoint}
+          disabled={redoStack.length === 0}
+          className="flex items-center justify-center h-8 w-8 rounded-lg bg-[#1e1e1e] border border-[#333] text-[#aaa] hover:text-white hover:border-[#444] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          title="Redo last point (Ctrl+Shift+Z)"
+        >
+          <Redo2 size={13} />
         </button>
 
         {/* Download dropdown */}

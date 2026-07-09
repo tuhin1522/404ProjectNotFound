@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { UserProfile } from "../types/auth";
-import { authService } from "../services/authService";
+import { authService } from "@/app/modules/auth/services/auth.service";
 
 interface AuthState {
   user: UserProfile | null;

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { authService } from "@/app/services/authService";
+import { authService } from "@/app/modules/auth/services/auth.service";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { LogIn, Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
