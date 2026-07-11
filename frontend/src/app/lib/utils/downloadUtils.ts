@@ -3,7 +3,7 @@ import { AnnotationImage, Polygon } from "@/app/types/annotations";
 /**
  * Download the raw JSON annotation data for the selected image.
  */
-export function downloadJSON(image: AnnotationImage, polygons: Polygon[]): void {
+function downloadJSON(image: AnnotationImage, polygons: Polygon[]): void {
   const data = {
     image: {
       id: image.id,
@@ -27,7 +27,7 @@ export function downloadJSON(image: AnnotationImage, polygons: Polygon[]): void 
 /**
  * Download the original image by fetching its URL as a blob.
  */
-export async function downloadOriginalImage(imageUrl: string, name: string): Promise<void> {
+async function downloadOriginalImage(imageUrl: string, name: string): Promise<void> {
   try {
     const response = await fetch(imageUrl, { mode: "cors" });
     const blob = await response.blob();
@@ -42,7 +42,7 @@ export async function downloadOriginalImage(imageUrl: string, name: string): Pro
 /**
  * Download the annotated canvas as a PNG image.
  */
-export function downloadAnnotatedImage(canvas: HTMLCanvasElement, name: string): void {
+function downloadAnnotatedImage(canvas: HTMLCanvasElement, name: string): void {
   const filename = `${name.replace(/\.[^.]+$/, "")}_annotated.png`;
 
   try {
@@ -91,3 +91,10 @@ export function inferShapeType(pointCount: number): "ellipse" | "box" | "polygon
   if (pointCount === 4) return "box";
   return "polygon";
 }
+
+export const downloadUtils = {
+  downloadJSON,
+  downloadOriginalImage,
+  downloadAnnotatedImage,
+  inferShapeType
+};

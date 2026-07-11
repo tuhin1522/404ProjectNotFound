@@ -7,14 +7,14 @@ import {
 } from "lucide-react";
 import { useAnnotationStore } from "@/app/modules/annotations/store/useAnnotationStore";
 import { Polygon, AnnotationLabel } from "@/app/types/annotations";
-import { inferShapeType } from "../utils/downloadUtils";
+import { downloadUtils } from "@/app/lib/utils/downloadUtils";
 import { swalConfirm, swalError, swalSuccess } from "@/app/lib/utils/swal";
 import { toast } from "sonner";
 
 // ─── Shape icon helper ────────────────────────────────────────────────────────
 
 function ShapeIcon({ polygon }: { polygon: Polygon }) {
-  const type = inferShapeType(polygon.points.length);
+  const type = downloadUtils.inferShapeType(polygon.points.length);
   const cls = "flex-shrink-0";
   if (type === "ellipse") return <Circle size={12} className={cls} />;
   if (type === "box") return <Square size={12} className={cls} />;
@@ -24,7 +24,7 @@ function ShapeIcon({ polygon }: { polygon: Polygon }) {
 
 function shapeLabel(polygon: Polygon): string {
   if (polygon.label === "__crop__") return "Crop Mask";
-  const type = inferShapeType(polygon.points.length);
+  const type = downloadUtils.inferShapeType(polygon.points.length);
   if (type === "ellipse") return "Ellipse";
   if (type === "box") return "Box";
   return "Polygon";
@@ -416,7 +416,7 @@ function LabelsPanel() {
 // ─── Properties Panel ─────────────────────────────────────────────────────────
 
 function PropertiesPanel({ polygon }: { polygon: Polygon }) {
-  const type = inferShapeType(polygon.points.length);
+  const type = downloadUtils.inferShapeType(polygon.points.length);
   const shapeType = type === "ellipse" ? "Ellipse" : type === "box" ? "Box" : "Polygon";
   const created = new Date(polygon.created_at);
 

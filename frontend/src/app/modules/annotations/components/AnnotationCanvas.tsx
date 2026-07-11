@@ -10,7 +10,7 @@ import React, {
 import { useAnnotationStore } from "@/app/modules/annotations/store/useAnnotationStore";
 import { Point, Polygon } from "@/app/types/annotations";
 import { LabelBadge } from "./LabelBadge";
-import { inferShapeType } from "../utils/downloadUtils";
+import { downloadUtils } from "@/app/lib/utils/downloadUtils";
 import { sharedCanvasRef } from "@/app/(protected)/annotate/page";
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
@@ -402,7 +402,7 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
       polygons.forEach((poly: Polygon) => {
         if (hiddenPolygonIds.has(poly.id)) return; // respect visibility
 
-        const shapeType = inferShapeType(poly.points.length);
+        const shapeType = downloadUtils.inferShapeType(poly.points.length);
         if (shapeType === "ellipse") {
           drawEllipse(
             ctx,

@@ -61,7 +61,7 @@ export const swalConfirm = async ({
 export const swalSuccess = async ({
   title = "Done",
   text = "Your changes were saved successfully.",
-  timer = 10,
+  timer = 100,
 }: {
   title?: string;
   text?: string;

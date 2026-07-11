@@ -9,11 +9,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/app/providers/ThemeProvider";
 import { useAnnotationStore } from "@/app/modules/annotations/store/useAnnotationStore";
-import {
-  downloadJSON,
-  downloadOriginalImage,
-  downloadAnnotatedImage,
-} from "@/app/modules/annotations/utils/downloadUtils";
+import { downloadUtils } from "@/app/lib/utils/downloadUtils";
 import { sharedCanvasRef } from "@/app/(protected)/annotate/page";
 
 export default function TopToolbar() {
@@ -65,19 +61,19 @@ export default function TopToolbar() {
 
   const handleDownloadJSON = () => {
     if (!selectedImage) return;
-    downloadJSON(selectedImage, visiblePolygons);
+    downloadUtils.downloadJSON(selectedImage, visiblePolygons);
     setShowDownload(false);
   };
 
   const handleDownloadOriginal = async () => {
     if (!selectedImage) return;
-    await downloadOriginalImage(selectedImage.image_url, selectedImage.name);
+    await downloadUtils.downloadOriginalImage(selectedImage.image_url, selectedImage.name);
     setShowDownload(false);
   };
 
   const handleDownloadAnnotated = () => {
     if (!selectedImage || !sharedCanvasRef.current) return;
-    downloadAnnotatedImage(sharedCanvasRef.current, selectedImage.name);
+    downloadUtils.downloadAnnotatedImage(sharedCanvasRef.current, selectedImage.name);
     setShowDownload(false);
   };
 
