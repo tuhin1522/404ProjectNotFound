@@ -92,7 +92,7 @@ function ObjectItem({
         transition-all duration-150 border text-xs
         ${isSelected
           ? "border-indigo-500/40 bg-indigo-500/10"
-          : "border-transparent hover:bg-[#1e1e1e]"
+          : "border-transparent hover:bg-gray-100 dark:hover:bg-[#1e1e1e]"
         }
         ${isHidden ? "opacity-40" : ""}
       `}
@@ -118,11 +118,11 @@ function ObjectItem({
               if (e.key === "Enter") handleSave(e);
               if (e.key === "Escape") handleCancel(e);
             }}
-            className="w-full bg-[#111] border border-indigo-500 outline-none rounded px-1.5 py-0.5 text-[11px] text-white"
+            className="w-full bg-gray-50 dark:bg-[#111] border border-indigo-500 outline-none rounded px-1.5 py-0.5 text-[11px] text-gray-900 dark:text-white"
             placeholder="Label"
           />
         ) : (
-          <p className="truncate text-[11px] font-medium text-[#ccc]" title={displayName}>
+          <p className="truncate text-[11px] font-medium text-gray-700 dark:text-[#ccc]" title={displayName}>
             {displayName}
           </p>
         )}
@@ -135,7 +135,7 @@ function ObjectItem({
             <button onClick={handleSave} className="p-1 text-emerald-400 hover:text-emerald-300 transition-colors" title="Save">
               <Check size={11} />
             </button>
-            <button onClick={handleCancel} className="p-1 text-[#555] hover:text-[#aaa] transition-colors" title="Cancel">
+            <button onClick={handleCancel} className="p-1 text-gray-500 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#aaa] transition-colors" title="Cancel">
               <X size={11} />
             </button>
           </>
@@ -143,7 +143,7 @@ function ObjectItem({
           <>
             <button
               onClick={(e) => { e.stopPropagation(); onToggleVisibility(polygon.id); }}
-              className="p-1 text-[#555] hover:text-[#aaa] transition-colors"
+              className="p-1 text-gray-500 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#aaa] transition-colors"
               title={isHidden ? "Show" : "Hide"}
             >
               {isHidden ? <EyeOff size={11} /> : <Eye size={11} />}
@@ -154,7 +154,7 @@ function ObjectItem({
                 setEditLabel(polygon.label || "");
                 setIsEditing(true);
               }}
-              className="p-1 text-[#555] hover:text-[#aaa] transition-colors"
+              className="p-1 text-gray-500 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#aaa] transition-colors"
               title="Rename"
             >
               <Edit2 size={11} />
@@ -180,7 +180,7 @@ function ObjectItem({
                   }
                 })();
               }}
-              className="p-1 text-[#555] hover:text-red-400 transition-colors"
+              className="p-1 text-gray-500 dark:text-[#555] hover:text-red-500 dark:hover:text-red-400 transition-colors"
               title="Delete"
             >
               <Trash2 size={11} />
@@ -210,7 +210,7 @@ function Section({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="flex flex-col">
-      <div className="flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-[#555] hover:text-[#888] transition-colors select-none">
+      <div className="flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#888] transition-colors select-none">
         <div className="flex items-center gap-2 cursor-pointer flex-1" onClick={() => setOpen(!open)}>
           {open ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
           {title}
@@ -304,15 +304,15 @@ function LabelsPanel() {
   return (
     <div className="px-2 pb-2">
       {labels.length === 0 && !isCreating && (
-        <p className="text-[11px] text-[#444] italic text-center py-3">No labels yet</p>
+        <p className="text-[11px] text-gray-500 dark:text-[#444] italic text-center py-3">No labels yet</p>
       )}
       <div className="flex flex-col gap-1">
         {labels.map((label: AnnotationLabel) => (
-          <div key={label.id} className="group flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all border border-transparent hover:bg-[#1e1e1e]">
+          <div key={label.id} className="group flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all border border-transparent hover:bg-gray-100 dark:hover:bg-[#1e1e1e]">
             <button
               onClick={() => setActiveLabel(activeLabelId === label.id ? null : label.id)}
               className={`flex items-center gap-2.5 flex-1 min-w-0 text-left ${
-                activeLabelId === label.id ? "text-white" : "text-[#888]"
+                activeLabelId === label.id ? "text-gray-900 dark:text-white" : "text-gray-600 dark:text-[#888]"
               }`}
             >
               <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: label.color }} />
@@ -325,14 +325,14 @@ function LabelsPanel() {
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={(e) => { e.stopPropagation(); startEdit(label); }}
-                className="p-1 text-[#555] hover:text-[#aaa] transition-colors"
+                className="p-1 text-gray-500 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#aaa] transition-colors"
                 title="Edit label"
               >
                 <Edit2 size={11} />
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); void handleDelete(label.id, label.name); }}
-                className="p-1 text-[#555] hover:text-red-400 transition-colors"
+                className="p-1 text-gray-500 dark:text-[#555] hover:text-red-500 dark:hover:text-red-400 transition-colors"
                 title="Delete label"
               >
                 <Trash2 size={11} />
@@ -343,10 +343,10 @@ function LabelsPanel() {
       </div>
 
       {editingLabelId !== null && (
-        <div className="mt-2 flex flex-col gap-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-3">
+        <div className="mt-2 flex flex-col gap-2 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-xl p-3">
           <input
             autoFocus
-            className="w-full bg-[#111] border border-[#333] rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-indigo-500 placeholder-[#444]"
+            className="w-full bg-white dark:bg-[#111] border border-gray-300 dark:border-[#333] rounded-lg px-2.5 py-1.5 text-xs text-gray-900 dark:text-white outline-none focus:border-indigo-500 placeholder-gray-400 dark:placeholder-[#444]"
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
             placeholder="Label name"
@@ -360,9 +360,9 @@ function LabelsPanel() {
               type="color"
               value={editColor}
               onChange={(e) => setEditColor(e.target.value)}
-              className="w-7 h-7 p-0.5 border border-[#333] rounded-lg cursor-pointer bg-[#111]"
+              className="w-7 h-7 p-0.5 border border-gray-300 dark:border-[#333] rounded-lg cursor-pointer bg-white dark:bg-[#111]"
             />
-            <button onClick={() => setEditingLabelId(null)} className="ml-auto p-1 text-[#555] hover:text-[#aaa]">
+            <button onClick={() => setEditingLabelId(null)} className="ml-auto p-1 text-gray-500 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#aaa]">
               <X size={13} />
             </button>
             <button onClick={() => handleUpdate(editingLabelId)} className="p-1 text-indigo-400 hover:text-indigo-300">
@@ -373,10 +373,10 @@ function LabelsPanel() {
       )}
 
       {isCreating && (
-        <div className="mt-2 flex flex-col gap-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-3">
+        <div className="mt-2 flex flex-col gap-2 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-xl p-3">
           <input
             autoFocus
-            className="w-full bg-[#111] border border-[#333] rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-indigo-500 placeholder-[#444]"
+            className="w-full bg-white dark:bg-[#111] border border-gray-300 dark:border-[#333] rounded-lg px-2.5 py-1.5 text-xs text-gray-900 dark:text-white outline-none focus:border-indigo-500 placeholder-gray-400 dark:placeholder-[#444]"
             value={draftName}
             onChange={(e) => setDraftName(e.target.value)}
             placeholder="Label name"
@@ -387,7 +387,7 @@ function LabelsPanel() {
               type="color"
               value={draftColor}
               onChange={(e) => setDraftColor(e.target.value)}
-              className="w-7 h-7 p-0.5 border border-[#333] rounded-lg cursor-pointer bg-[#111]"
+              className="w-7 h-7 p-0.5 border border-gray-300 dark:border-[#333] rounded-lg cursor-pointer bg-white dark:bg-[#111]"
             />
             <div className="flex gap-1 flex-wrap">
               {["#6366f1", "#22c55e", "#ef4444", "#f59e0b", "#0ea5e9", "#ec4899"].map(c => (
@@ -397,14 +397,14 @@ function LabelsPanel() {
               ))}
             </div>
             <button onClick={handleCreate} className="ml-auto p-1 text-indigo-400 hover:text-indigo-300"><Check size={13} /></button>
-            <button onClick={() => setIsCreating(false)} className="p-1 text-[#555] hover:text-[#aaa]"><X size={13} /></button>
+            <button onClick={() => setIsCreating(false)} className="p-1 text-gray-500 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#aaa]"><X size={13} /></button>
           </div>
         </div>
       )}
 
       <button
         onClick={() => setIsCreating(true)}
-        className="mt-2 w-full flex items-center justify-center gap-1.5 h-7 rounded-lg border border-dashed border-[#2a2a2a] text-[#444] hover:border-indigo-500/40 hover:text-indigo-400 text-[11px] transition-all"
+        className="mt-2 w-full flex items-center justify-center gap-1.5 h-7 rounded-lg border border-dashed border-gray-300 dark:border-[#2a2a2a] text-gray-600 dark:text-[#444] hover:border-indigo-500/40 hover:text-indigo-500 dark:hover:text-indigo-400 text-[11px] transition-all"
       >
         <Plus size={11} />
         New Label
@@ -421,7 +421,7 @@ function PropertiesPanel({ polygon }: { polygon: Polygon }) {
   const created = new Date(polygon.created_at);
 
   const rows = [
-    { key: "Label", value: polygon.label || <span className="italic text-[#444]">Unlabelled</span> },
+    { key: "Label", value: polygon.label || <span className="italic text-gray-500 dark:text-[#444]">Unlabelled</span> },
     {
       key: "Color", value: (
         <span className="flex items-center gap-1.5">
@@ -441,11 +441,11 @@ function PropertiesPanel({ polygon }: { polygon: Polygon }) {
 
   return (
     <div className="px-3 pb-3">
-      <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
+      <div className="bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-xl overflow-hidden">
         {rows.map((row, i) => (
-          <div key={row.key} className={`flex items-start gap-2 px-3 py-2 ${i !== rows.length - 1 ? "border-b border-[#1f1f1f]" : ""}`}>
-            <span className="text-[10px] text-[#444] w-14 flex-shrink-0 pt-0.5">{row.key}</span>
-            <span className="text-[11px] text-[#aaa] flex-1">{row.value}</span>
+          <div key={row.key} className={`flex items-start gap-2 px-3 py-2 ${i !== rows.length - 1 ? "border-b border-gray-200 dark:border-[#1f1f1f]" : ""}`}>
+            <span className="text-[10px] text-gray-500 dark:text-[#444] w-14 flex-shrink-0 pt-0.5">{row.key}</span>
+            <span className="text-[11px] text-gray-700 dark:text-[#aaa] flex-1">{row.value}</span>
           </div>
         ))}
       </div>
@@ -474,15 +474,15 @@ export default function AnnotationSidebar() {
   const selectedPolygon = polygons.find(p => p.id === selectedPolygonId);
 
   return (
-    <aside className="flex-shrink-0 w-56 bg-[#111111] border-l border-[#2a2a2a] flex flex-col overflow-hidden">
-      <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "#2a2a2a transparent" }}>
+    <aside className="flex-shrink-0 w-56 bg-white dark:bg-[#111111] border-l border-gray-200 dark:border-[#2a2a2a] flex flex-col overflow-hidden">
+      <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(128,128,128,0.2) transparent" }}>
 
         {/* Labels */}
         <Section title="Labels" badge={0} defaultOpen>
           <LabelsPanel />
         </Section>
 
-        <div className="h-px bg-[#1e1e1e] mx-3" />
+        <div className="h-px bg-gray-200 dark:bg-[#1e1e1e] mx-3" />
 
         {/* Objects */}
         <Section
@@ -522,10 +522,10 @@ export default function AnnotationSidebar() {
         >
           <div className="px-2 pb-2 flex flex-col gap-0.5">
             {!selectedImageId && (
-              <p className="text-[11px] text-[#333] italic text-center py-4">Select an image</p>
+              <p className="text-[11px] text-gray-400 dark:text-[#333] italic text-center py-4">Select an image</p>
             )}
             {selectedImageId && visibleObjects.length === 0 && (
-              <p className="text-[11px] text-[#333] italic text-center py-4">No annotations yet</p>
+              <p className="text-[11px] text-gray-400 dark:text-[#333] italic text-center py-4">No annotations yet</p>
             )}
             {visibleObjects.map((polygon, index) => (
               <ObjectItem
@@ -546,7 +546,7 @@ export default function AnnotationSidebar() {
         {/* Properties */}
         {selectedPolygon && (
           <>
-            <div className="h-px bg-[#1e1e1e] mx-3" />
+            <div className="h-px bg-gray-200 dark:bg-[#1e1e1e] mx-3" />
             <Section title="Properties" defaultOpen>
               <PropertiesPanel polygon={selectedPolygon} />
             </Section>

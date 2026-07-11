@@ -25,7 +25,7 @@ export default function AnnotatePage() {
 
   if (authLoading || !isAuthenticated) {
     return (
-      <div className="flex items-center justify-center w-screen h-screen bg-[#0d0d0d]">
+      <div className="flex items-center justify-center w-screen h-screen bg-gray-100 dark:bg-[#0d0d0d]">
         <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -33,7 +33,7 @@ export default function AnnotatePage() {
 
   return (
     <div
-      className="fixed inset-0 flex flex-col bg-[#0d0d0d] overflow-hidden"
+      className="fixed inset-0 flex flex-col bg-gray-100 dark:bg-[#0d0d0d] overflow-hidden"
       style={{ zIndex: 50 }}
     >
       {/* Top Toolbar */}

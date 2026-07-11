@@ -5,7 +5,9 @@ import React, { useRef, useState, useCallback } from "react";
 import {
   ScanLine, Upload, Save, Download, Maximize2, Minimize2, Undo2, Redo2,
   ImageIcon, Shapes, ChevronDown, FileJson, Image as ImageIconLucide,
+  Sun, Moon
 } from "lucide-react";
+import { useTheme } from "@/app/providers/ThemeProvider";
 import { useAnnotationStore } from "@/app/modules/annotations/store/useAnnotationStore";
 import {
   downloadJSON,
@@ -15,6 +17,7 @@ import {
 import { sharedCanvasRef } from "@/app/(protected)/annotate/page";
 
 export default function TopToolbar() {
+  const { theme, toggleTheme, mounted } = useTheme();
   const {
     images,
     selectedImageId,
@@ -79,47 +82,47 @@ export default function TopToolbar() {
   };
 
   return (
-    <header className="flex-shrink-0 h-[60px] bg-[#111111] border-b border-[#2a2a2a] flex items-center px-4 gap-4 z-50">
+    <header className="flex-shrink-0 h-[60px] bg-white dark:bg-[#111111] border-b border-gray-200 dark:border-[#2a2a2a] flex items-center px-4 gap-4 z-50">
       {/* Logo + Project Name */}
       <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
         <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
           <ScanLine size={16} className="text-indigo-400" />
         </div>
         <div className="hidden sm:block">
-          <p className="text-sm font-bold text-white leading-tight group-hover:text-indigo-300 transition-colors">404ProjectNotFound</p>
+          <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition-colors">404ProjectNotFound</p>
         </div>
       </Link>
 
-      <div className="w-px h-8 bg-[#2a2a2a]" />
+      <div className="w-px h-8 bg-gray-200 dark:bg-[#2a2a2a]" />
 
       {/* Current image info */}
       <div className="flex items-center gap-4 flex-1 min-w-0">
         {selectedImage ? (
           <>
             <div className="min-w-0">
-              <p className="text-[10px] text-[#555] leading-none mb-0.5">CURRENT IMAGE</p>
-              <p className="text-sm font-medium text-[#ccc] truncate max-w-[180px]" title={selectedImage.name}>
+              <p className="text-[10px] text-gray-500 dark:text-[#555] leading-none mb-0.5">CURRENT IMAGE</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-[#ccc] truncate max-w-[180px]" title={selectedImage.name}>
                 {selectedImage.name}
               </p>
             </div>
 
             <div className="hidden md:flex items-center gap-3">
-              <div className="flex items-center gap-1.5 bg-[#1e1e1e] border border-[#2a2a2a] rounded-full px-3 py-1">
-                <Shapes size={11} className="text-indigo-400" />
-                <span className="text-[11px] font-semibold text-[#aaa]">
+              <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#2a2a2a] rounded-full px-3 py-1">
+                <Shapes size={11} className="text-indigo-500 dark:text-indigo-400" />
+                <span className="text-[11px] font-semibold text-gray-600 dark:text-[#aaa]">
                   {visiblePolygons.length} annotations
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 bg-[#1e1e1e] border border-[#2a2a2a] rounded-full px-3 py-1">
-                <ImageIcon size={11} className="text-indigo-400" />
-                <span className="text-[11px] font-semibold text-[#aaa]">
+              <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#2a2a2a] rounded-full px-3 py-1">
+                <ImageIcon size={11} className="text-indigo-500 dark:text-indigo-400" />
+                <span className="text-[11px] font-semibold text-gray-600 dark:text-[#aaa]">
                   {images.length} images · {totalAnnotations} total
                 </span>
               </div>
             </div>
           </>
         ) : (
-          <p className="text-sm text-[#444]">No image selected — upload to begin</p>
+          <p className="text-sm text-gray-500 dark:text-[#444]">No image selected — upload to begin</p>
         )}
       </div>
 
@@ -137,7 +140,7 @@ export default function TopToolbar() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
-          className="flex items-center gap-2 h-8 px-3 rounded-lg bg-[#1e1e1e] border border-[#333] text-[#aaa] hover:text-white hover:border-indigo-500/50 hover:bg-[#252525] text-xs font-medium transition-all disabled:opacity-50"
+          className="flex items-center gap-2 h-8 px-3 rounded-lg bg-gray-100 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#333] text-gray-600 dark:text-[#aaa] hover:text-gray-900 dark:hover:text-white hover:border-indigo-500/50 hover:bg-gray-200 dark:hover:bg-[#252525] text-xs font-medium transition-all disabled:opacity-50"
           title="Upload Images"
         >
           {isUploading ? (
@@ -166,7 +169,7 @@ export default function TopToolbar() {
         <button
           onClick={undoLastPoint}
           disabled={currentPolygonPoints.length === 0}
-          className="flex items-center justify-center h-8 w-8 rounded-lg bg-[#1e1e1e] border border-[#333] text-[#aaa] hover:text-white hover:border-[#444] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          className="flex items-center justify-center h-8 w-8 rounded-lg bg-gray-100 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#333] text-gray-600 dark:text-[#aaa] hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-[#444] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           title="Undo last point (Ctrl+Z)"
         >
           <Undo2 size={13} />
@@ -175,7 +178,7 @@ export default function TopToolbar() {
         <button
           onClick={redoLastPoint}
           disabled={redoStack.length === 0}
-          className="flex items-center justify-center h-8 w-8 rounded-lg bg-[#1e1e1e] border border-[#333] text-[#aaa] hover:text-white hover:border-[#444] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          className="flex items-center justify-center h-8 w-8 rounded-lg bg-gray-100 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#333] text-gray-600 dark:text-[#aaa] hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-[#444] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           title="Redo last point (Ctrl+Shift+Z)"
         >
           <Redo2 size={13} />
@@ -186,7 +189,7 @@ export default function TopToolbar() {
           <button
             onClick={() => setShowDownload(!showDownload)}
             disabled={!selectedImage}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-[#1e1e1e] border border-[#333] text-[#aaa] hover:text-white hover:border-[#444] text-xs font-medium transition-all disabled:opacity-30"
+            className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-gray-100 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#333] text-gray-600 dark:text-[#aaa] hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-[#444] text-xs font-medium transition-all disabled:opacity-30"
             title="Download (Ctrl+D)"
           >
             <Download size={13} />
@@ -197,24 +200,24 @@ export default function TopToolbar() {
           {showDownload && selectedImage && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowDownload(false)} />
-              <div className="absolute right-0 top-full mt-2 w-52 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl shadow-2xl z-50 overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] rounded-xl shadow-2xl z-50 overflow-hidden">
                 <button
                   onClick={handleDownloadJSON}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-xs text-[#ccc] hover:bg-[#252525] hover:text-white transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-xs text-gray-700 dark:text-[#ccc] hover:bg-gray-100 dark:hover:bg-[#252525] hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   <FileJson size={14} className="text-indigo-400" />
                   JSON Annotations
                 </button>
                 <button
                   onClick={handleDownloadOriginal}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-xs text-[#ccc] hover:bg-[#252525] hover:text-white transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-xs text-gray-700 dark:text-[#ccc] hover:bg-gray-100 dark:hover:bg-[#252525] hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   <ImageIconLucide size={14} className="text-indigo-400" />
                   Original Image
                 </button>
                 <button
                   onClick={handleDownloadAnnotated}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-xs text-[#ccc] hover:bg-[#252525] hover:text-white transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-xs text-gray-700 dark:text-[#ccc] hover:bg-gray-100 dark:hover:bg-[#252525] hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   <ImageIconLucide size={14} className="text-emerald-400" />
                   Annotated Image
@@ -224,10 +227,21 @@ export default function TopToolbar() {
           )}
         </div>
 
+        {/* Theme Toggle */}
+        {mounted && (
+          <button
+            onClick={toggleTheme}
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#333] text-gray-600 dark:text-[#777] hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-[#444] transition-all"
+            title="Toggle Theme"
+          >
+            {theme === "dark" ? <Sun size={13} /> : <Moon size={13} />}
+          </button>
+        )}
+
         {/* Fullscreen */}
         <button
           onClick={handleFullscreen}
-          className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1e1e1e] border border-[#333] text-[#777] hover:text-white hover:border-[#444] transition-all"
+          className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#333] text-gray-600 dark:text-[#777] hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-[#444] transition-all"
           title="Toggle Fullscreen"
         >
           {isFullscreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}

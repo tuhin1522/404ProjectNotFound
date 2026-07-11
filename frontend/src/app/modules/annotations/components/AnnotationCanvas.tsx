@@ -758,16 +758,16 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
     return (
       <div
         ref={containerRef}
-        className="flex-1 flex items-center justify-center bg-[#141414]"
+        className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-[#141414]"
       >
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#1e1e1e] border border-[#2a2a2a] flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-[#333]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 rounded-2xl bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#2a2a2a] flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-gray-400 dark:text-[#333]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <p className="text-sm font-semibold text-[#444]">No image selected</p>
-          <p className="text-xs text-[#333] mt-1">Upload images using the button above or the filmstrip below</p>
+          <p className="text-sm font-semibold text-gray-600 dark:text-[#444]">No image selected</p>
+          <p className="text-xs text-gray-500 dark:text-[#333] mt-1">Upload images using the button above or the filmstrip below</p>
         </div>
       </div>
     );
@@ -785,7 +785,7 @@ const AnnotationCanvas = memo(function AnnotationCanvas() {
   return (
     <div
       ref={containerRef}
-      className="flex-1 relative bg-[#141414] overflow-hidden"
+      className="flex-1 relative bg-gray-50 dark:bg-[#141414] overflow-hidden"
     >
       <canvas
         ref={setCanvasElement}

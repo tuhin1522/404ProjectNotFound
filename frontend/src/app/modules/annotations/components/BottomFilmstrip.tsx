@@ -62,12 +62,12 @@ export default function BottomFilmstrip() {
   };
 
   return (
-    <footer className="flex-shrink-0 h-24 bg-[#0d0d0d] border-t border-[#1e1e1e] flex items-center px-2 gap-2">
+    <footer className="flex-shrink-0 h-24 bg-gray-100 dark:bg-[#0d0d0d] border-t border-gray-200 dark:border-[#1e1e1e] flex items-center px-2 gap-2">
       {/* Navigation arrows */}
       <button
         onClick={() => selectPrevImage()}
         disabled={images.length <= 1 || selectedIndex <= 0}
-        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-[#555] hover:text-white hover:border-[#3a3a3a] transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] text-gray-500 dark:text-[#555] hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-[#3a3a3a] transition-all disabled:opacity-20 disabled:cursor-not-allowed"
         title="Previous image (←)"
       >
         <ChevronLeft size={14} />
@@ -85,7 +85,7 @@ export default function BottomFilmstrip() {
       <button
         onClick={() => fileInputRef.current?.click()}
         disabled={isUploading}
-        className="flex-shrink-0 w-16 h-16 rounded-xl border-2 border-dashed border-[#2a2a2a] hover:border-indigo-500/40 hover:bg-indigo-500/5 flex flex-col items-center justify-center gap-1 text-[#444] hover:text-indigo-400 transition-all group"
+        className="flex-shrink-0 w-16 h-16 rounded-xl border-2 border-dashed border-gray-300 dark:border-[#2a2a2a] hover:border-indigo-500/40 hover:bg-indigo-500/5 flex flex-col items-center justify-center gap-1 text-gray-500 dark:text-[#444] hover:text-indigo-500 dark:hover:text-indigo-400 transition-all group"
         title="Upload Images"
       >
         {isUploading ? (
@@ -100,7 +100,7 @@ export default function BottomFilmstrip() {
 
       {/* Loading / error states */}
       {isImagesLoading && (
-        <div className="flex items-center gap-2 text-[11px] text-[#444]">
+        <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-[#444]">
           <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
           Loading…
         </div>
@@ -127,7 +127,7 @@ export default function BottomFilmstrip() {
                 border-2 transition-all duration-200
                 ${isSelected
                   ? "border-indigo-500 shadow-lg shadow-indigo-500/30 scale-[1.04]"
-                  : "border-[#2a2a2a] hover:border-[#3a3a3a] hover:scale-[1.02]"
+                  : "border-gray-300 dark:border-[#2a2a2a] hover:border-gray-400 dark:hover:border-[#3a3a3a] hover:scale-[1.02]"
                 }
               `}
             >
@@ -174,7 +174,7 @@ export default function BottomFilmstrip() {
       <button
         onClick={() => selectNextImage()}
         disabled={images.length <= 1 || selectedIndex >= images.length - 1}
-        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-[#555] hover:text-white hover:border-[#3a3a3a] transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-[#2a2a2a] text-gray-500 dark:text-[#555] hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-[#3a3a3a] transition-all disabled:opacity-20 disabled:cursor-not-allowed"
         title="Next image (→)"
       >
         <ChevronRight size={14} />
@@ -182,9 +182,9 @@ export default function BottomFilmstrip() {
 
       {/* Image count */}
       {images.length > 0 && (
-        <div className="flex-shrink-0 text-[10px] text-[#444] text-center min-w-[36px]">
-          <span className="text-[#777] font-bold">{selectedIndex + 1}</span>
-          <span className="text-[#333]">/{images.length}</span>
+        <div className="flex-shrink-0 text-[10px] text-gray-500 dark:text-[#444] text-center min-w-[36px]">
+          <span className="text-gray-700 dark:text-[#777] font-bold">{selectedIndex + 1}</span>
+          <span className="text-gray-400 dark:text-[#333]">/{images.length}</span>
         </div>
       )}
     </footer>

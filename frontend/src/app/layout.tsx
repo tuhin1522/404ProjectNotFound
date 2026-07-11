@@ -33,7 +33,10 @@ export default function RootLayout({
       <head>
         <meta name="darkreader-lock" />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
+      <body
+        className="min-h-full flex flex-col bg-background text-foreground font-sans"
+        suppressHydrationWarning
+      >
         <ThemeProvider>
           <AuthInitializer />
           <SonnerGlobal position="top-right" richColors closeButton />

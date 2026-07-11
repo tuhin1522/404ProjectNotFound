@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+import socket
+from typing import cast
 from decouple import config
 from urllib.parse import urlparse, parse_qsl
 
@@ -26,7 +28,11 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me-in-producti
 
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+def _comma_separated_env(name: str, default: str) -> list[str]:
+    return cast(str, config(name, default=default, cast=str)).split(',')
+
+
+ALLOWED_HOSTS = _comma_separated_env('ALLOWED_HOSTS', 'localhost,127.0.0.1')
 
 # Production security settings (can be overridden via environment variables)
 SECURE_BROWSER_XSS_FILTER = config('SECURE_BROWSER_XSS_FILTER', default=True, cast=bool)
@@ -87,28 +93,52 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ---------------------------------------------------------------------------
-# Database — Neon PostgreSQL via psycopg3
+# Database — Neon PostgreSQL via psycopg3, with a local SQLite fallback
 # ---------------------------------------------------------------------------
 
-_db_url = config('DATABASE_URL')
-_parsed = urlparse(_db_url)
+_db_url = cast(str, config('DATABASE_URL', default='', cast=str))
+
+
+def _host_is_resolvable(hostname):
+    if not hostname:
+        return False
+
+    try:
+        socket.getaddrinfo(hostname, None)
+        return True
+    except socket.gaierror:
+        return False
+
+
+if _db_url:
+    _parsed = urlparse(_db_url)
+else:
+    _parsed = None
 
 # psycopg3 (the `psycopg` package) is used automatically by Django 6 when
 # it is installed. The SSL options from the connection URL query string are
 # passed through OPTIONS so they reach the driver correctly.
-_options = dict(parse_qsl(_parsed.query))
+if _parsed and _host_is_resolvable(_parsed.hostname):
+    _options = dict(parse_qsl(_parsed.query))
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': _parsed.path.lstrip('/'),
-        'USER': _parsed.username,
-        'PASSWORD': _parsed.password,
-        'HOST': _parsed.hostname,
-        'PORT': _parsed.port or 5432,
-        'OPTIONS': _options,
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': _parsed.path.lstrip('/'),
+            'USER': _parsed.username,
+            'PASSWORD': _parsed.password,
+            'HOST': _parsed.hostname,
+            'PORT': _parsed.port or 5432,
+            'OPTIONS': _options,
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # ---------------------------------------------------------------------------
 # Password validation
@@ -188,10 +218,10 @@ REST_FRAMEWORK = {
 # CORS
 # ---------------------------------------------------------------------------
 
-CORS_ALLOWED_ORIGINS = config(
+CORS_ALLOWED_ORIGINS = _comma_separated_env(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://127.0.0.1:3000'
-).split(',')
+    'http://localhost:3000,http://127.0.0.1:3000',
+)
 
 AUTH_USER_MODEL = 'users.User'
 

@@ -42,7 +42,7 @@ export default function LeftToolbar() {
   ];
 
   return (
-    <aside className="flex-shrink-0 w-12 bg-[#111111] border-r border-[#2a2a2a] flex flex-col items-center py-3 gap-1 z-10">
+    <aside className="flex-shrink-0 w-12 bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-[#2a2a2a] flex flex-col items-center py-3 gap-1 z-10">
       {/* Drawing tools */}
       {drawingTools.map((tool) => {
         const isActive = toolMode === tool.mode;
@@ -54,8 +54,8 @@ export default function LeftToolbar() {
             className={`
               relative w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-150
               ${isActive
-                ? "text-white shadow-lg"
-                : "text-[#555] hover:text-[#aaa] hover:bg-[#1e1e1e]"
+                ? "text-gray-900 dark:text-white shadow-lg"
+                : "text-gray-500 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#aaa] hover:bg-gray-100 dark:hover:bg-[#1e1e1e]"
               }
             `}
             style={isActive ? {
@@ -76,13 +76,13 @@ export default function LeftToolbar() {
       })}
 
       {/* Divider */}
-      <div className="w-6 h-px bg-[#2a2a2a] my-2" />
+      <div className="w-6 h-px bg-gray-200 dark:bg-[#2a2a2a] my-2" />
 
       {/* Zoom controls */}
       <button
         onClick={() => setZoom((z) => Math.min(10, parseFloat((z + 0.25).toFixed(2))))}
         title="Zoom In (+)"
-        className="w-9 h-9 flex items-center justify-center rounded-lg text-[#555] hover:text-[#aaa] hover:bg-[#1e1e1e] transition-all"
+        className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#aaa] hover:bg-gray-100 dark:hover:bg-[#1e1e1e] transition-all"
       >
         <ZoomIn size={18} />
       </button>
@@ -90,7 +90,7 @@ export default function LeftToolbar() {
       <button
         onClick={() => setZoom((z) => Math.max(0.1, parseFloat((z - 0.25).toFixed(2))))}
         title="Zoom Out (-)"
-        className="w-9 h-9 flex items-center justify-center rounded-lg text-[#555] hover:text-[#aaa] hover:bg-[#1e1e1e] transition-all"
+        className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#aaa] hover:bg-gray-100 dark:hover:bg-[#1e1e1e] transition-all"
       >
         <ZoomOut size={18} />
       </button>
@@ -98,7 +98,7 @@ export default function LeftToolbar() {
       <button
         onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
         title="Reset Zoom (1:1)"
-        className="w-9 h-9 flex items-center justify-center rounded-lg text-[#555] hover:text-[#aaa] hover:bg-[#1e1e1e] transition-all"
+        className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#aaa] hover:bg-gray-100 dark:hover:bg-[#1e1e1e] transition-all"
       >
         <Maximize size={16} />
       </button>
@@ -106,13 +106,13 @@ export default function LeftToolbar() {
       <button
         onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
         title="Fit Screen"
-        className="w-9 h-9 flex items-center justify-center rounded-lg text-[#555] hover:text-[#aaa] hover:bg-[#1e1e1e] transition-all"
+        className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 dark:text-[#555] hover:text-gray-700 dark:hover:text-[#aaa] hover:bg-gray-100 dark:hover:bg-[#1e1e1e] transition-all"
       >
         <Expand size={16} />
       </button>
 
       {/* Divider */}
-      <div className="w-6 h-px bg-[#2a2a2a] my-2" />
+      <div className="w-6 h-px bg-gray-200 dark:bg-[#2a2a2a] my-2" />
 
       {/* Color Palette */}
       <div className="flex flex-col gap-1.5 items-center w-full px-1">
