@@ -1,4 +1,5 @@
 import Swal from "sweetalert2";
+import { toast } from "sonner";
 
 const getBaseSwalConfig = () => {
   const isDark = document.documentElement.classList.contains("dark");
@@ -61,20 +62,15 @@ export const swalConfirm = async ({
 export const swalSuccess = async ({
   title = "Done",
   text = "Your changes were saved successfully.",
-  timer = 100,
+  timer = 1500,
 }: {
   title?: string;
   text?: string;
   timer?: number;
 } = {}) => {
-  await Swal.fire({
-    ...getBaseSwalConfig(),
-    icon: "success",
-    title,
-    text,
-    timer,
-    showConfirmButton: false,
-    toast: false,
+  toast.success(title, {
+    description: text,
+    duration: timer,
   });
 };
 
