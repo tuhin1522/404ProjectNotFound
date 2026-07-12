@@ -11,8 +11,6 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-import os
-import socket
 from typing import cast
 from decouple import config
 from urllib.parse import urlparse, parse_qsl
@@ -41,6 +39,12 @@ X_FRAME_OPTIONS = config('X_FRAME_OPTIONS', default='DENY')
 
 # In production behind a load balancer, set SECURE_SSL_REDIRECT=True
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
+
+# Disable automatic slash redirect — our DRF routers handle trailing slashes
+# via trailing_slash='/?', so Django's CommonMiddleware should not redirect.
+# Without this, PATCH/PUT requests to URLs without trailing slashes crash
+# because the middleware cannot preserve the request body during a 301 redirect.
+APPEND_SLASH = False
 
 # ---------------------------------------------------------------------------
 # Application definition
@@ -93,32 +97,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ---------------------------------------------------------------------------
-# Database — Neon PostgreSQL via psycopg3, with a local SQLite fallback
+# Database — Neon PostgreSQL via psycopg3
 # ---------------------------------------------------------------------------
 
 _db_url = cast(str, config('DATABASE_URL', default='', cast=str))
 
-
-def _host_is_resolvable(hostname):
-    if not hostname:
-        return False
-
-    try:
-        socket.getaddrinfo(hostname, None)
-        return True
-    except socket.gaierror:
-        return False
-
-
 if _db_url:
     _parsed = urlparse(_db_url)
-else:
-    _parsed = None
-
-# psycopg3 (the `psycopg` package) is used automatically by Django 6 when
-# it is installed. The SSL options from the connection URL query string are
-# passed through OPTIONS so they reach the driver correctly.
-if _parsed and _host_is_resolvable(_parsed.hostname):
     _options = dict(parse_qsl(_parsed.query))
 
     DATABASES = {
@@ -133,12 +118,7 @@ if _parsed and _host_is_resolvable(_parsed.hostname):
         }
     }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+    raise ValueError("DATABASE_URL environment variable is required")
 
 # ---------------------------------------------------------------------------
 # Password validation

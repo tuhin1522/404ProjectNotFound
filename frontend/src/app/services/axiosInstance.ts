@@ -29,9 +29,45 @@ axiosInstance.interceptors.request.use((config) => {
 
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+
     if (typeof window !== "undefined") {
       const status = error?.response?.status;
+
+      // Only attempt refresh on 401, not 403, and only if we haven't already retried
+      if (status === 401 && !originalRequest._retry && !originalRequest.url?.includes("/auth/") && !originalRequest.url?.includes("/users/login/")) {
+        originalRequest._retry = true;
+        
+        try {
+          const refreshToken = localStorage.getItem("refreshToken");
+          if (!refreshToken) throw new Error("No refresh token");
+          
+          // Request new token
+          const res = await axios.post(`${baseURL}/users/login/refresh/`, { refresh: refreshToken });
+          
+          const newAuthToken = res.data.access;
+          localStorage.setItem("token", newAuthToken);
+          // Update refresh token if the backend rotated it
+          if (res.data.refresh) {
+            localStorage.setItem("refreshToken", res.data.refresh);
+          }
+          
+          // Retry original request
+          originalRequest.headers.Authorization = `Bearer ${newAuthToken}`;
+          return axiosInstance(originalRequest);
+          
+        } catch (refreshError) {
+          // If refresh fails, clear tokens and redirect to login
+          localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
+          const path = window.location.pathname;
+          if (!path.startsWith("/login") && !path.startsWith("/signup")) {
+            window.location.href = "/login";
+          }
+          return Promise.reject(refreshError);
+        }
+      }
 
       if (status === 401 || status === 403) {
         // Clear tokens immediately to prevent re-entrant checkAuth calls

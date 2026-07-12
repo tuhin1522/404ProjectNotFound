@@ -121,6 +121,7 @@ export default function Signup() {
                       type="text"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
+                      required
                       className="block w-full pl-10 pr-3 py-2.5 bg-background border border-input rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-special focus:border-transparent transition-all"
                       placeholder="John"
                     />
@@ -137,6 +138,7 @@ export default function Signup() {
                       type="text"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
+                      required
                       className="block w-full px-3 py-2.5 bg-background border border-input rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-special focus:border-transparent transition-all"
                       placeholder="Doe"
                     />
