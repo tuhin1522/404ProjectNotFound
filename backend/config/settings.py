@@ -30,7 +30,7 @@ def _comma_separated_env(name: str, default: str) -> list[str]:
     return cast(str, config(name, default=default, cast=str)).split(',')
 
 
-ALLOWED_HOSTS = _comma_separated_env('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = ['*']  # Allow all hosts since Vercel generates dynamic domain names
 
 # Production security settings (can be overridden via environment variables)
 SECURE_BROWSER_XSS_FILTER = config('SECURE_BROWSER_XSS_FILTER', default=True, cast=bool)
@@ -39,6 +39,7 @@ X_FRAME_OPTIONS = config('X_FRAME_OPTIONS', default='DENY')
 
 # In production behind a load balancer, set SECURE_SSL_REDIRECT=True
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Disable automatic slash redirect — our DRF routers handle trailing slashes
 # via trailing_slash='/?', so Django's CommonMiddleware should not redirect.
@@ -57,6 +58,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -162,6 +165,19 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+if config('CLOUDINARY_URL', default=''):
+    CLOUDINARY_STORAGE = {
+        'CLOUDINARY_URL': config('CLOUDINARY_URL')
+    }
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
 # ---------------------------------------------------------------------------
 # Default primary key type
 # ---------------------------------------------------------------------------
@@ -199,10 +215,8 @@ REST_FRAMEWORK = {
 # CORS
 # ---------------------------------------------------------------------------
 
-CORS_ALLOWED_ORIGINS = _comma_separated_env(
-    'CORS_ALLOWED_ORIGINS',
-    'http://localhost:3000,http://127.0.0.1:3000',
-)
+# Allow all origins to prevent CORS issues with dynamically generated Vercel preview domains
+CORS_ALLOW_ALL_ORIGINS = True
 
 AUTH_USER_MODEL = 'users.User'
 

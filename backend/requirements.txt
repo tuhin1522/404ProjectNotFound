@@ -1,5 +1,7 @@
 asgiref==3.11.1
+cloudinary==1.41.0
 Django==6.0.6
+django-cloudinary-storage==0.3.0
 django-cors-headers==4.9.0
 django-stubs==6.0.6
 django-stubs-ext==6.0.6
